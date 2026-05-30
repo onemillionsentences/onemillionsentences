@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Participants — One Million Sentences</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:        #0f0e0c;
+      --paper:      #faf8f3;
+      --cream:      #f2ede3;
+      --gold:       #c9a84c;
+      --gold-light: #f0d98a;
+      --blue:       #1a3a5c;
+      --blue-mid:   #2d6a9f;
+      --muted:      #7a7060;
+      --border:     #ddd8cc;
+      --white:      #ffffff;
+      --success:    #2d6a4f;
+      --success-bg: #eaf5ee;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: rgba(250,248,243,0.97);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .nav-logo span { color: var(--gold); }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .nav-links a {
+      font-size: 14px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--ink); }
+
+    .btn-nav {
+      background: var(--ink);
+      color: var(--paper);
+      border: none;
+      padding: 9px 22px;
+      border-radius: 7px;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+      display: inline-block;
+    }
+
+    .btn-nav:hover { background: var(--blue); }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      background: var(--ink);
+      padding: 56px 40px 48px;
+      text-align: center;
+    }
+
+    .page-header .ph-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 14px;
+    }
+
+    .page-header h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 700;
+      color: var(--paper);
+      line-height: 1.1;
+      letter-spacing: -0.5px;
+      margin-bottom: 14px;
+    }
+
+    .page-header h1 em { font-style: italic; color: var(--gold); }
+
+    .page-header p {
+      font-size: 14px;
+      color: rgba(250,248,243,0.5);
+      max-width: 500px;
+      margin: 0 auto 28px;
+      line-height: 1.75;
+    }
+
+    /* STATS ROW */
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 1px;
+      background: rgba(250,248,243,0.08);
+      border-radius: 14px;
+      overflow: hidden;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    .stat-pill {
+      background: rgba(250,248,243,0.04);
+      padding: 18px 28px;
+      text-align: center;
+      flex: 1;
+    }
+
+    .stat-pill .sp-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--gold);
+      display: block;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-pill .sp-lbl {
+      font-size: 11px;
+      color: rgba(250,248,243,0.35);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* PRIVACY NOTICE */
+    .privacy-notice {
+      background: var(--cream);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .privacy-notice strong { color: var(--ink); }
+
+    /* ── MAIN CONTENT ── */
+    .main-wrap {
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 40px 40px 80px;
+    }
+
+    /* FILTER + SEARCH BAR */
+    .controls-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 15px;
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 11px 14px 11px 40px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: 'Outfit', sans-serif;
+      background: var(--white);
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+    }
+
+    .filter-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 9px 18px;
+      border: 1.5px solid var(--border);
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'Outfit', sans-serif;
+      background: var(--white);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover { border-color: var(--ink); color: var(--ink); }
+
+    .filter-btn.active {
+      background: var(--ink);
+      color: var(--paper);
+      border-color: var(--ink);
+    }
+
+    .sort-select {
+      padding: 9px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 13px;
+      font-family: 'Outfit', sans-serif;
+      background: var(--white);
+      color: var(--ink);
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* RESULTS COUNT */
+    .results-count {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .results-count strong { color: var(--ink); }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 80px 40px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+    }
+
+    .empty-icon {
+      font-size: 52px;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .empty-state h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 380px;
+      margin: 0 auto 24px;
+    }
+
+    .btn-join {
+      display: inline-block;
+      background: var(--ink);
+      color: var(--paper);
+      border: none;
+      padding: 13px 30px;
+      border-radius: 9px;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+      box-shadow: 0 4px 20px rgba(15,14,12,0.12);
+    }
+
+    .btn-join:hover { background: var(--blue); transform: translateY(-1px); }
+
+    /* ── PARTICIPANTS GRID ── */
+    .participants-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .p-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 16px;
+      text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .p-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 28px rgba(15,14,12,0.08);
+    }
+
+    .p-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+
+    .p-card.founder::before  { background: linear-gradient(90deg, var(--gold), var(--gold-light)); }
+    .p-card.approved::before { background: linear-gradient(90deg, #52b788, #95d5b2); }
+    .p-card.pending::before  { background: linear-gradient(90deg, var(--blue-mid), #5a9fd4); }
+
+    .p-avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 auto 10px;
+      flex-shrink: 0;
+    }
+
+    .p-avatar.founder-av  { background: var(--ink); color: var(--gold); }
+    .p-avatar.approved-av { background: var(--success-bg); color: var(--success); }
+    .p-avatar.pending-av  { background: #e8f0f8; color: var(--blue-mid); }
+
+    .p-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .p-country {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .p-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .p-badges {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .p-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 9px;
+      border-radius: 100px;
+      letter-spacing: 0.3px;
+    }
+
+    .pb-founder   { background: var(--ink); color: var(--gold); }
+    .pb-approved  { background: var(--success-bg); color: var(--success); }
+    .pb-pending   { background: #e8f0f8; color: var(--blue-mid); }
+    .pb-ambassador{ background: #f5efd6; color: var(--warning); }
+    .pb-vip       { background: var(--ink); color: var(--gold-light); font-size: 9px; }
+    .pb-multi     { background: var(--cream); color: var(--muted); border: 1px solid var(--border); }
+
+    /* ── LIST VIEW ── */
+    .participants-list {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+
+    .participants-list.show { display: flex; }
+    .participants-grid.hide  { display: none; }
+
+    .p-list-item {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: background 0.2s;
+    }
+
+    .p-list-item:hover { background: var(--cream); }
+
+    .p-list-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--gold);
+      min-width: 72px;
+      flex-shrink: 0;
+    }
+
+    .p-list-name {
+      font-size: 14px;
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .p-list-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .p-list-date {
+      font-size: 12px;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    /* VIEW TOGGLE */
+    .view-toggle {
+      display: flex;
+      gap: 4px;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 3px;
+    }
+
+    .vt-btn {
+      width: 32px; height: 32px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      transition: background 0.2s;
+      color: var(--muted);
+    }
+
+    .vt-btn.active { background: var(--white); color: var(--ink); box-shadow: 0 1px 4px rgba(15,14,12,0.08); }
+
+    /* PAGINATION */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pg-btn {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--white);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .pg-btn:hover:not(:disabled) { border-color: var(--ink); background: var(--cream); }
+    .pg-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .pg-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .pg-arrow {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--white);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .pg-arrow:hover:not(:disabled) { border-color: var(--ink); }
+    .pg-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* JOIN CTA */
+    .join-cta {
+      background: var(--ink);
+      border-radius: 20px;
+      padding: 48px;
+      text-align: center;
+      margin-top: 48px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .join-cta::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: 50%; transform: translateX(-50%);
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(201,168,76,0.1) 0%, transparent 70%);
+    }
+
+    .join-cta h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 34px;
+      font-weight: 700;
+      color: var(--paper);
+      margin-bottom: 10px;
+      line-height: 1.15;
+    }
+
+    .join-cta h3 em { font-style: italic; color: var(--gold); }
+
+    .join-cta p {
+      font-size: 14px;
+      color: rgba(250,248,243,0.5);
+      margin-bottom: 24px;
+      line-height: 1.7;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 700px) {
+      nav { padding: 0 20px; }
+      .nav-links a { display: none; }
+      .page-header { padding: 48px 24px 40px; }
+      .privacy-notice { padding: 12px 24px; font-size: 12px; }
+      .main-wrap { padding: 28px 20px 60px; }
+      .controls-bar { gap: 8px; }
+      .participants-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+      .join-cta { padding: 36px 24px; }
+    }
+
+    /* WARNING */
+    .warning-bar {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+
+    .warning-pending { background: var(--warning-bg); color: var(--warning); border: 1px solid #e8d090; }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="nav-logo">One Million<span>.</span></a>
+    <div class="nav-links">
+      <a href="index.html#how">How it works</a>
+      <a href="index.html#pricing">Pricing</a>
+      <a href="index.html#faq">FAQ</a>
+      <a href="register.html" class="btn-nav">Join Now →</a>
+    </div>
+  </nav>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="ph-tag">The writers</div>
+    <h1>The people building<br><em>the book.</em></h1>
+    <p>Every approved contributor appears here. Sentence content is kept private until the book is published — only display names and sentence numbers are shown.</p>
+
+    <div class="stats-row">
+      <div class="stat-pill">
+        <span class="sp-num" id="stat-approved">0</span>
+        <div class="sp-lbl">Approved</div>
+      </div>
+      <div class="stat-pill">
+        <span class="sp-num" id="stat-pending">0</span>
+        <div class="sp-lbl">Pending review</div>
+      </div>
+      <div class="stat-pill">
+        <span class="sp-num" id="stat-total">0</span>
+        <div class="sp-lbl">Total writers</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRIVACY NOTICE -->
+  <div class="privacy-notice">
+    🔒 <span><strong>Privacy notice:</strong> Sentence content is completely hidden until the book is published. Only display names and sentence numbers are shown here.</span>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main-wrap">
+
+    <!-- CONTROLS -->
+    <div class="controls-bar">
+      <!-- Search -->
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          class="search-input"
+          id="search-input"
+          placeholder="Search by name or sentence number…"
+          oninput="filterParticipants()"
+        />
+      </div>
+
+      <!-- Filters -->
+      <div class="filter-btns">
+        <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+        <button class="filter-btn" onclick="setFilter('founder', this)">👑 Founders</button>
+        <button class="filter-btn" onclick="setFilter('approved', this)">✓ Approved</button>
+        <button class="filter-btn" onclick="setFilter('pending', this)">⏳ Pending</button>
+      </div>
+
+      <!-- Sort -->
+      <select class="sort-select" id="sort-select" onchange="filterParticipants()">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        <option value="number">By number</option>
+        <option value="name">By name (A–Z)</option>
+      </select>
+
+      <!-- View toggle -->
+      <div class="view-toggle">
+        <button class="vt-btn active" id="grid-btn" onclick="setView('grid')" title="Grid view">⊞</button>
+        <button class="vt-btn" id="list-btn" onclick="setView('list')" title="List view">☰</button>
+      </div>
+    </div>
+
+    <!-- RESULTS COUNT -->
+    <p class="results-count" id="results-count">Showing <strong>0</strong> contributors</p>
+
+    <!-- GRID VIEW -->
+    <div class="participants-grid" id="participants-grid">
+      <!-- Injected by JS -->
+    </div>
+
+    <!-- LIST VIEW -->
+    <div class="participants-list" id="participants-list">
+      <!-- Injected by JS -->
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="pagination" id="pagination"></div>
+
+    <!-- JOIN CTA -->
+    <div class="join-cta">
+      <h3>Your name could be<br><em>on this page.</em></h3>
+      <p>Join the project for $5 — or free if you're among the first 100 — and your name appears here permanently once your sentence is approved.</p>
+      <a href="register.html" class="btn-join">Write Your Sentence →</a>
+    </div>
+
+  </div>
+
+  <script>
+    /* ═══════════════════════════════════════════════════
+       SUPABASE CONFIG
+    ═══════════════════════════════════════════════════ */
+    const SUPABASE_URL = 'https://getebatmpkrfhgkqxdig.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_ZoXks0auwur0m0er1frpOA_CkI7GfAz';
+
+    /* ═══════════════════════════════════════════════════
+       STATE
+    ═══════════════════════════════════════════════════ */
+    const PER_PAGE   = 48;
+    let currentPage  = 1;
+    let currentFilter= 'all';
+    let currentView  = 'grid';
+    let filtered     = [];
+    let ALL_PARTICIPANTS = [];
+
+    /* ═══════════════════════════════════════════════════
+       LOAD FROM SUPABASE
+    ═══════════════════════════════════════════════════ */
+    async function loadFromSupabase() {
+      try {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/contributors?select=id,display_name,first_name,last_name,country,created_at,referral_count,free_sentences&order=id.asc`,
+          {
+            headers: {
+              'apikey': SUPABASE_KEY,
+              'Authorization': `Bearer ${SUPABASE_KEY}`
+            }
+          }
+        );
+        if (!res.ok) throw new Error('Failed');
+        const data = await res.json();
+
+        ALL_PARTICIPANTS = data.map((p, i) => {
+          const num = i + 1;
+          const name = p.display_name || `${p.first_name || ''} ${p.last_name || ''}`.trim() || 'Anonymous';
+          const month = p.created_at ? new Date(p.created_at).toLocaleString('en', {month:'short', year:'numeric'}) : '';
+          const isFounder = num <= 100;
+          return {
+            id:          num,
+            displayName: name,
+            country:     p.country || '',
+            number:      '#' + String(num).padStart(6, '0'),
+            status:      'approved',
+            isFounder:   isFounder,
+            referrals:   p.referral_count || 0,
+            joinedAt:    month
+          };
+        });
+
+        initStats();
+        filterParticipants();
+
+      } catch(e) {
+        console.warn('Supabase error:', e);
+        initStats();
+        filterParticipants();
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       INIT STATS
+    ═══════════════════════════════════════════════════ */
+    function initStats() {
+      const approved = ALL_PARTICIPANTS.filter(p => p.status === 'approved').length;
+      const pending  = ALL_PARTICIPANTS.filter(p => p.status === 'pending').length;
+      document.getElementById('stat-approved').textContent = approved;
+      document.getElementById('stat-pending').textContent  = pending;
+      document.getElementById('stat-total').textContent    = ALL_PARTICIPANTS.length;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       FILTER
+    ═══════════════════════════════════════════════════ */
+    function setFilter(f, btn) {
+      currentFilter = f;
+      currentPage   = 1;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterParticipants();
+    }
+
+    function filterParticipants() {
+      const query = document.getElementById('search-input').value.trim().toLowerCase();
+      const sort  = document.getElementById('sort-select').value;
+
+      filtered = ALL_PARTICIPANTS.filter(p => {
+        const matchFilter =
+          currentFilter === 'all'      ? true :
+          currentFilter === 'founder'  ? p.isFounder :
+          currentFilter === 'approved' ? p.status === 'approved' :
+          currentFilter === 'pending'  ? p.status === 'pending'  : true;
+
+        const matchSearch =
+          !query ||
+          p.displayName.toLowerCase().includes(query) ||
+          p.number.toLowerCase().includes(query);
+
+        return matchFilter && matchSearch;
+      });
+
+      // Sort
+      filtered.sort((a, b) => {
+        if (sort === 'oldest')  return a.id - b.id;
+        if (sort === 'newest')  return b.id - a.id;
+        if (sort === 'number')  return a.id - b.id;
+        if (sort === 'name')    return a.displayName.localeCompare(b.displayName);
+        return b.id - a.id;
+      });
+
+      currentPage = 1;
+      render();
+    }
+
+    /* ═══════════════════════════════════════════════════
+       RENDER
+    ═══════════════════════════════════════════════════ */
+    function render() {
+      const grid = document.getElementById('participants-grid');
+      const list = document.getElementById('participants-list');
+      const rc   = document.getElementById('results-count');
+      const pg   = document.getElementById('pagination');
+
+      const start = (currentPage - 1) * PER_PAGE;
+      const page  = filtered.slice(start, start + PER_PAGE);
+      const total = filtered.length;
+      const pages = Math.ceil(total / PER_PAGE);
+
+      // Results count
+      rc.innerHTML = total === 0
+        ? 'No contributors found'
+        : `Showing <strong>${Math.min(start + 1, total)}–${Math.min(start + PER_PAGE, total)}</strong> of <strong>${total}</strong> contributor${total !== 1 ? 's' : ''}`;
+
+      // Empty state
+      if (total === 0) {
+        grid.innerHTML = '';
+        list.innerHTML = '';
+
+        const isEmpty = ALL_PARTICIPANTS.length === 0;
+        const emptyHtml = isEmpty
+          ? `<div class="empty-state">
+               <span class="empty-icon">📖</span>
+               <h3>No contributors yet</h3>
+               <p>This project just launched. Be the very first person to contribute a sentence and claim your spot at the top of this page!</p>
+               <a href="register.html" class="btn-join">Be the first contributor →</a>
+             </div>`
+          : `<div class="empty-state">
+               <span class="empty-icon">🔍</span>
+               <h3>No results found</h3>
+               <p>No contributors match your search. Try a different name or clear the filters.</p>
+               <button class="btn-join" onclick="clearSearch()">Clear search</button>
+             </div>`;
+
+        grid.innerHTML = emptyHtml;
+        list.innerHTML = emptyHtml;
+        pg.innerHTML   = '';
+        return;
+      }
+
+      // Grid cards
+      grid.innerHTML = page.map(p => {
+        const initials = p.displayName.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+        const avClass  = p.isFounder ? 'founder-av' : p.status === 'approved' ? 'approved-av' : 'pending-av';
+        const cardCls  = p.isFounder ? 'founder' : p.status;
+
+        let badges = '';
+        if (p.isFounder)         badges += '<span class="p-badge pb-founder">👑 Founder</span>';
+        if (p.referrals >= 10)   badges += '<span class="p-badge pb-vip">⭐ VIP</span>';
+        else if (p.referrals>=5) badges += '<span class="p-badge pb-ambassador">🌟 Ambassador</span>';
+        if (!p.isFounder) {
+          if (p.status === 'approved') badges += '<span class="p-badge pb-approved">✓ Approved</span>';
+          else                         badges += '<span class="p-badge pb-pending">⏳ Pending</span>';
+        }
+
+        const countryHtml = p.country ? `<div class="p-country">🌍 ${p.country}</div>` : '';
+
+        return `
+          <div class="p-card ${cardCls}">
+            <div class="p-avatar ${avClass}">${initials}</div>
+            <div class="p-name" title="${p.displayName}">${p.displayName}</div>
+            <div class="p-num">${p.number}</div>
+            ${countryHtml}
+            <div class="p-badges">${badges}</div>
+          </div>`;
+      }).join('');
+
+      // List rows
+      list.innerHTML = page.map(p => {
+        const avClass = p.isFounder ? 'founder-av' : p.status === 'approved' ? 'approved-av' : 'pending-av';
+        const initials = p.displayName.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+
+        let badges = '';
+        if (p.isFounder)         badges += '<span class="p-badge pb-founder">👑 Founder</span>';
+        if (p.referrals >= 10)   badges += '<span class="p-badge pb-vip">⭐ VIP</span>';
+        else if (p.referrals>=5) badges += '<span class="p-badge pb-ambassador">🌟 Ambassador</span>';
+        if (p.status === 'approved') badges += '<span class="p-badge pb-approved">✓</span>';
+        else                         badges += '<span class="p-badge pb-pending">⏳</span>';
+
+        return `
+          <div class="p-list-item">
+            <div class="p-avatar ${avClass}" style="width:36px;height:36px;font-size:14px;">${initials}</div>
+            <div class="p-list-num">${p.number}</div>
+            <div class="p-list-name">${p.displayName}${p.country ? ' <span style="color:var(--muted);font-size:12px;">🌍 '+p.country+'</span>' : ''}</div>
+            <div class="p-list-badges">${badges}</div>
+            <div class="p-list-date">${p.joinedAt}</div>
+          </div>`;
+      }).join('');
+
+      // Pagination
+      if (pages <= 1) { pg.innerHTML = ''; return; }
+
+      let pgHtml = `<button class="pg-arrow" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>←</button>`;
+
+      for (let i = 1; i <= pages; i++) {
+        if (pages > 7) {
+          if (i === 1 || i === pages || (i >= currentPage-1 && i <= currentPage+1)) {
+            pgHtml += `<button class="pg-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+          } else if (i === currentPage-2 || i === currentPage+2) {
+            pgHtml += `<span style="color:var(--muted);padding:0 4px;">…</span>`;
+          }
+        } else {
+          pgHtml += `<button class="pg-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+        }
+      }
+
+      pgHtml += `<button class="pg-arrow" onclick="goPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>→</button>`;
+      pg.innerHTML = pgHtml;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       PAGINATION
+    ═══════════════════════════════════════════════════ */
+    function goPage(n) {
+      const pages = Math.ceil(filtered.length / PER_PAGE);
+      if (n < 1 || n > pages) return;
+      currentPage = n;
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ═══════════════════════════════════════════════════
+       VIEW TOGGLE
+    ═══════════════════════════════════════════════════ */
+    function setView(v) {
+      currentView = v;
+      document.getElementById('grid-btn').classList.toggle('active', v === 'grid');
+      document.getElementById('list-btn').classList.toggle('active', v === 'list');
+      document.getElementById('participants-grid').classList.toggle('hide', v === 'list');
+      document.getElementById('participants-list').classList.toggle('show', v === 'list');
+    }
+
+    /* ═══════════════════════════════════════════════════
+       CLEAR SEARCH
+    ═══════════════════════════════════════════════════ */
+    function clearSearch() {
+      document.getElementById('search-input').value = '';
+      currentFilter = 'all';
+      document.querySelectorAll('.filter-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+      filterParticipants();
+    }
+
+    /* ═══════════════════════════════════════════════════
+       RUN
+    ═══════════════════════════════════════════════════ */
+    loadFromSupabase();
+  </script>
+</body>
+</html>
