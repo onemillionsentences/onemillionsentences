@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Join the Book — One Million Sentences</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:        #0f0e0c;
+      --paper:      #faf8f3;
+      --cream:      #f2ede3;
+      --gold:       #c9a84c;
+      --gold-light: #f0d98a;
+      --blue:       #1a3a5c;
+      --blue-mid:   #2d6a9f;
+      --muted:      #7a7060;
+      --border:     #ddd8cc;
+      --white:      #ffffff;
+      --success:    #2d6a4f;
+      --success-bg: #eaf5ee;
+      --danger:     #8b2020;
+      --danger-bg:  #fdf0f0;
+      --warning:    #7a5a10;
+      --warning-bg: #fdf6e3;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: rgba(250,248,243,0.97);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .nav-logo span { color: var(--gold); }
+
+    .nav-back {
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+
+    .nav-back:hover { color: var(--ink); }
+
+    /* ── LAYOUT ── */
+    .page-wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 48px 40px 80px;
+      display: grid;
+      grid-template-columns: 1fr 430px;
+      gap: 52px;
+      align-items: start;
+    }
+
+    /* ── LEFT PANEL ── */
+    .info-panel { position: sticky; top: 84px; }
+
+    .info-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 14px;
+    }
+
+    .info-panel h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 40px;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.5px;
+      margin-bottom: 18px;
+    }
+
+    .info-panel h1 em { font-style: italic; color: var(--gold); }
+
+    .info-panel > p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 28px;
+    }
+
+    /* FOUNDER BANNER */
+    .founder-box {
+      background: var(--ink);
+      border-radius: 14px;
+      padding: 20px 22px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .founder-box .f-count {
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .founder-box .f-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 38px;
+      font-weight: 700;
+      color: var(--gold);
+      line-height: 1;
+      display: block;
+    }
+
+    .founder-box .f-lbl {
+      font-size: 10px;
+      color: rgba(250,248,243,0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .founder-box .f-div {
+      width: 1px;
+      height: 44px;
+      background: rgba(250,248,243,0.1);
+      flex-shrink: 0;
+    }
+
+    .founder-box .f-text {
+      font-size: 12px;
+      color: rgba(250,248,243,0.65);
+      line-height: 1.6;
+    }
+
+    .founder-box .f-text strong { color: var(--gold-light); }
+
+    /* RULES */
+    .rules-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .rules-list { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+
+    .rules-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .r-icon {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .r-ok  { background: var(--success-bg); color: var(--success); }
+    .r-no  { background: var(--danger-bg);  color: var(--danger); }
+
+    /* ── FORM CARD ── */
+    .form-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 32px;
+      box-shadow: 0 4px 40px rgba(15,14,12,0.06);
+    }
+
+    .form-card h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .form-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 26px;
+      line-height: 1.55;
+    }
+
+    /* STEP DOTS */
+    .step-bar {
+      display: flex;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .s-dot {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      background: var(--white);
+      transition: all 0.3s;
+      flex-shrink: 0;
+    }
+
+    .s-dot.active { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+    .s-dot.done   { background: var(--success); border-color: var(--success); color: var(--white); font-size: 13px; }
+
+    .s-line {
+      flex: 1;
+      height: 1.5px;
+      background: var(--border);
+      transition: background 0.3s;
+    }
+
+    .s-line.done { background: var(--success); }
+
+    /* PANELS */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* FIELD */
+    .field { margin-bottom: 16px; }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .field label .req { color: var(--danger); margin-left: 2px; }
+
+    .field input,
+    .field textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: 'Outfit', sans-serif;
+      background: var(--white);
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field input:focus,
+    .field textarea:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+    }
+
+    .field input.err-field  { border-color: var(--danger); }
+    .field input.ok-field   { border-color: var(--success); }
+    .field textarea.err-field { border-color: var(--danger); }
+    .field textarea.ok-field  { border-color: var(--success); }
+
+    .field textarea { resize: vertical; min-height: 110px; line-height: 1.65; }
+
+    .field .hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 5px;
+      line-height: 1.5;
+    }
+
+    .err-msg {
+      font-size: 11px;
+      color: var(--danger);
+      margin-top: 5px;
+      display: none;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .err-msg.show { display: flex; }
+
+    /* TWO COL */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* CHAR + LANG */
+    .sentence-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+      gap: 10px;
+    }
+
+    .lang-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      transition: all 0.25s;
+      flex-shrink: 0;
+    }
+
+    .lang-badge.hidden   { display: none; }
+    .lang-badge.checking { background: var(--cream); color: var(--muted); border-color: var(--border); }
+    .lang-badge.good     { background: var(--success-bg); color: var(--success); border-color: #b7dfc5; }
+    .lang-badge.bad      { background: var(--danger-bg); color: var(--danger); border-color: #f5c0c0; }
+
+    .char-count {
+      font-size: 11px;
+      color: var(--muted);
+      flex-shrink: 0;
+      transition: color 0.2s;
+    }
+
+    .char-count.warn { color: var(--warning); font-weight: 600; }
+    .char-count.over { color: var(--danger);  font-weight: 700; }
+
+    /* ALERTS */
+    .alert {
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 12px;
+      line-height: 1.6;
+      margin-bottom: 14px;
+      display: none;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .alert.show     { display: flex; }
+    .alert.a-danger { background: var(--danger-bg); border: 1px solid #f5c0c0; color: var(--danger); }
+    .alert.a-warn   { background: var(--warning-bg); border: 1px solid #e8d090; color: var(--warning); }
+
+    /* REFERRAL DETECTED */
+    .ref-detected {
+      background: var(--warning-bg);
+      border: 1px solid #e8d090;
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 12px;
+      color: var(--warning);
+      margin-bottom: 16px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      line-height: 1.5;
+    }
+
+    .ref-detected.show { display: flex; }
+
+    /* DISCLAIMER */
+    .disclaimer {
+      background: var(--warning-bg);
+      border: 1px solid #e8d090;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 18px;
+    }
+
+    .disclaimer .d-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--warning);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .disclaimer p {
+      font-size: 12px;
+      color: #5a4010;
+      line-height: 1.75;
+    }
+
+    /* CHECKBOXES */
+    .chk-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+
+    .chk-row input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: var(--ink);
+      flex-shrink: 0;
+      margin-top: 3px;
+      cursor: pointer;
+    }
+
+    .chk-row label {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      cursor: pointer;
+    }
+
+    .chk-row label a { color: var(--blue-mid); }
+
+    /* REVIEW SUMMARY */
+    .review-box {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 18px;
+    }
+
+    .review-box .rb-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .rb-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      font-size: 13px;
+      gap: 12px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .rb-row:last-child { border-bottom: none; }
+    .rb-row .rb-lbl { color: var(--muted); flex-shrink: 0; }
+    .rb-row .rb-val { font-weight: 500; text-align: right; }
+    .rb-sentence { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-style: italic; }
+
+    /* PRICE BOX */
+    .price-box {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 18px;
+    }
+
+    .price-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--muted);
+      padding: 5px 0;
+    }
+
+    .price-line.total {
+      border-top: 1px solid var(--border);
+      margin-top: 6px;
+      padding-top: 10px;
+      font-weight: 600;
+      color: var(--ink);
+      font-size: 15px;
+    }
+
+    /* FREE SPOT BADGE */
+    .free-spot-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--success-bg);
+      border: 1px solid #b7dfc5;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--success);
+      font-weight: 500;
+      margin-bottom: 18px;
+    }
+
+    /* BUTTONS */
+    .btn-main {
+      width: 100%;
+      background: var(--ink);
+      color: var(--paper);
+      border: none;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 500;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      margin-bottom: 10px;
+    }
+
+    .btn-main:hover:not(:disabled) { background: var(--blue); transform: translateY(-1px); }
+    .btn-main:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .btn-back {
+      width: 100%;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-back:hover { border-color: var(--ink); color: var(--ink); }
+
+    .secure-note {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
+    /* SUCCESS */
+    .success-wrap {
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .success-circle {
+      width: 70px; height: 70px;
+      border-radius: 50%;
+      background: var(--success-bg);
+      color: var(--success);
+      font-size: 30px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 22px;
+      animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+
+    .success-wrap h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .success-wrap > p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 6px;
+    }
+
+    .pending-num {
+      display: inline-block;
+      background: var(--ink);
+      color: var(--gold);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 700;
+      padding: 8px 30px;
+      border-radius: 100px;
+      margin: 14px 0;
+    }
+
+    .review-notice {
+      background: var(--warning-bg);
+      border: 1px solid #e8d090;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 12px;
+      color: var(--warning);
+      line-height: 1.65;
+      margin: 16px 0;
+      text-align: left;
+    }
+
+    .ref-link-box {
+      margin-top: 24px;
+      padding-top: 22px;
+      border-top: 1px solid var(--border);
+      text-align: left;
+    }
+
+    .ref-link-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .ref-link-row {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ref-link-text {
+      font-size: 12px;
+      color: var(--ink);
+      flex: 1;
+      word-break: break-all;
+    }
+
+    .btn-copy {
+      background: var(--ink);
+      color: var(--paper);
+      border: none;
+      padding: 7px 14px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+
+    .btn-copy:hover { background: var(--blue); }
+
+    .ref-link-hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 7px;
+      line-height: 1.5;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .page-wrap { grid-template-columns: 1fr; }
+      .info-panel { position: static; }
+    }
+
+    @media (max-width: 580px) {
+      nav { padding: 0 20px; }
+      .page-wrap { padding: 28px 20px 60px; }
+      .form-card { padding: 26px 18px; }
+      .two-col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="nav-logo">One Million<span>.</span></a>
+    <a href="index.html" class="nav-back">← Back to home</a>
+  </nav>
+
+  <div class="page-wrap">
+
+    <!-- ══════════════════════════════════════ -->
+    <!--  LEFT — INFO PANEL                    -->
+    <!-- ══════════════════════════════════════ -->
+    <div class="info-panel">
+      <div class="info-tag">Join the project</div>
+      <h1>Your sentence.<br>Your place in<br><em>history.</em></h1>
+      <p>Write one original English sentence, complete your registration, and receive the full book free when it is published. Your display name and sentence number will appear inside forever.</p>
+
+      <!-- Founder spots -->
+      <div class="founder-box">
+        <div class="f-count">
+          <span class="f-num">100</span>
+          <div class="f-lbl">free spots</div>
+        </div>
+        <div class="f-div"></div>
+        <div class="f-text">
+          The first <strong>100 contributors</strong> join completely free with a permanent <strong>"Founder"</strong> badge. Be among the first — this project is just getting started.
+        </div>
+      </div>
+
+      <!-- Rules -->
+      <p class="rules-title">Submission rules</p>
+      <ul class="rules-list">
+        <li><div class="r-icon r-ok">✓</div> Must be written in <strong>English only</strong></li>
+        <li><div class="r-icon r-ok">✓</div> Must be <strong>original</strong> — your own creation</li>
+        <li><div class="r-icon r-ok">✓</div> Between <strong>10 and 300 characters</strong> long</li>
+        <li><div class="r-icon r-no">✗</div> No <strong>religious</strong> content of any kind</li>
+        <li><div class="r-icon r-no">✗</div> No <strong>political</strong> opinions or statements</li>
+        <li><div class="r-icon r-no">✗</div> No <strong>adult or explicit</strong> content</li>
+        <li><div class="r-icon r-no">✗</div> No <strong>offensive or hateful</strong> language</li>
+        <li><div class="r-icon r-no">✗</div> No <strong>copied or plagiarised</strong> text</li>
+      </ul>
+    </div>
+
+    <!-- ══════════════════════════════════════ -->
+    <!--  RIGHT — FORM CARD                    -->
+    <!-- ══════════════════════════════════════ -->
+    <div class="form-card">
+
+      <!-- Step bar -->
+      <div class="step-bar" id="step-bar">
+        <div class="s-dot active" id="d1">1</div>
+        <div class="s-line" id="l1"></div>
+        <div class="s-dot" id="d2">2</div>
+        <div class="s-line" id="l2"></div>
+        <div class="s-dot" id="d3">3</div>
+        <div class="s-line" id="l3"></div>
+        <div class="s-dot" id="d4">4</div>
+      </div>
+
+      <!-- ─────────────────────────────────── -->
+      <!-- PANEL 1 · Personal details         -->
+      <!-- ─────────────────────────────────── -->
+      <div class="panel active" id="p1">
+        <h2>Your details</h2>
+        <p class="form-sub">Your display name will appear in the book exactly as you enter it.</p>
+
+        <!-- Referral detected banner -->
+        <div class="ref-detected" id="ref-banner">
+          🔗 <span>You were referred by <strong id="ref-by-name">a member</strong>. Their referral count will be updated when you join.</span>
+        </div>
+
+        <div class="two-col">
+          <div class="field">
+            <label>First name <span class="req">*</span></label>
+            <input type="text" id="f-first" placeholder="John" maxlength="50"/>
+            <div class="err-msg" id="e-first">⚠ Required</div>
+          </div>
+          <div class="field">
+            <label>Last name <span class="req">*</span></label>
+            <input type="text" id="f-last" placeholder="Smith" maxlength="50"/>
+            <div class="err-msg" id="e-last">⚠ Required</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Display name — shown in the book <span class="req">*</span></label>
+          <input type="text" id="f-display" placeholder="e.g. John S. or JohnWriter" maxlength="40"/>
+          <div class="hint">This is the name that will appear next to your sentence number inside the book. Choose carefully — it cannot be changed later.</div>
+          <div class="err-msg" id="e-display">⚠ Required</div>
+        </div>
+
+        <div class="field">
+          <label>Email address <span class="req">*</span></label>
+          <input type="email" id="f-email" placeholder="john@example.com"/>
+          <div class="hint">The completed book will be delivered to this email address. Please make sure it is correct.</div>
+          <div class="err-msg" id="e-email">⚠ Please enter a valid email address</div>
+        </div>
+
+        <div class="field">
+          <label>Confirm email address <span class="req">*</span></label>
+          <input type="email" id="f-email2" placeholder="john@example.com"/>
+          <div class="err-msg" id="e-email2">⚠ Email addresses do not match</div>
+        </div>
+
+        <div class="field">
+          <label>Country <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted)">(optional)</span></label>
+          <input type="text" id="f-country" placeholder="e.g. United States"/>
+        </div>
+
+        <button class="btn-main" onclick="next(2)">Continue — Write Your Sentence →</button>
+      </div>
+
+      <!-- ─────────────────────────────────── -->
+      <!-- PANEL 2 · The sentence             -->
+      <!-- ─────────────────────────────────── -->
+      <div class="panel" id="p2">
+        <h2>Write your sentence</h2>
+        <p class="form-sub">This is the sentence that will appear in the book under your name forever. Make it meaningful.</p>
+
+        <!-- Alerts -->
+        <div class="alert a-danger" id="a-banned">
+          🚫 <span id="a-banned-txt">Your sentence contains content that is not allowed.</span>
+        </div>
+        <div class="alert a-warn" id="a-lang">
+          ⚠️ Your sentence appears to contain non-English text. Only sentences written entirely in English are accepted.
+        </div>
+
+        <div class="field">
+          <label>Your sentence <span class="req">*</span></label>
+          <textarea
+            id="f-sentence"
+            placeholder="Write your original English sentence here…"
+            maxlength="300"
+            oninput="onSentenceInput(this.value)"
+          ></textarea>
+          <div class="sentence-footer">
+            <div class="lang-badge hidden" id="lang-badge">
+              <span id="lang-icon">⏳</span>
+              <span id="lang-txt">Checking…</span>
+            </div>
+            <div class="char-count" id="char-ct">0 / 300</div>
+          </div>
+          <div class="err-msg" id="e-sentence">⚠ Minimum 10 characters required</div>
+        </div>
+
+        <!-- Inspiration tip -->
+        <div style="background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:18px;">
+          <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--ink);margin-bottom:6px;">💡 Need inspiration?</p>
+          <p style="font-size:12px;color:var(--muted);line-height:1.65;">Your sentence can be about anything positive — a piece of wisdom, an observation, a creative thought, a description of nature, a memory, or a dream. The only limit is your imagination.</p>
+        </div>
+
+        <!-- IMPORTANT DISCLAIMER -->
+        <div class="disclaimer">
+          <div class="d-title">⚠️ Important — please read before continuing</div>
+          <p>
+            By submitting your sentence you confirm that you understand and accept the following:
+            <br><br>
+            <strong>(1) The one million sentence goal is NOT guaranteed.</strong> It is our target, not a contractual promise. In the unlikely event the goal is not reached, you will still receive the complete book containing all sentences collected up to that point, at no extra charge.
+            <br><br>
+            <strong>(2) Manual review.</strong> Every sentence is personally reviewed before approval. If your sentence is rejected for any reason, your full $5 payment will be refunded within 5–10 business days.
+            <br><br>
+            <strong>(3) Your sentence will remain private.</strong> The content of your sentence will not be shown publicly on this website. Only your display name and sentence number will be visible.
+            <br><br>
+            <strong>(4) Publication rights.</strong> By submitting, you permanently transfer the publication rights of your sentence to this project.
+          </p>
+        </div>
+
+        <div class="chk-row">
+          <input type="checkbox" id="chk1" onchange="updateBtn2()"/>
+          <label for="chk1">I confirm my sentence is entirely in English and contains no religious, political, adult, or offensive content</label>
+        </div>
+        <div class="chk-row">
+          <input type="checkbox" id="chk2" onchange="updateBtn2()"/>
+          <label for="chk2">I confirm this sentence is 100% my own original writing and is not copied from any other source</label>
+        </div>
+        <div class="chk-row">
+          <input type="checkbox" id="chk3" onchange="updateBtn2()"/>
+          <label for="chk3">I have read and understood the important notice above, including that the 1,000,000 sentence goal is <strong>not guaranteed</strong></label>
+        </div>
+        <div class="chk-row">
+          <input type="checkbox" id="chk4" onchange="updateBtn2()"/>
+          <label for="chk4">I agree to transfer the publication rights of my sentence to this project and I accept the <a href="#">Terms of Service</a></label>
+        </div>
+
+        <div class="err-msg" id="e-checks" style="margin-bottom:10px;">⚠ Please check all boxes to continue</div>
+
+        <button class="btn-main" id="btn2" onclick="next(3)" disabled>Review &amp; Confirm →</button>
+        <button class="btn-back" onclick="next(1)" style="margin-top:10px;">← Back</button>
+      </div>
+
+      <!-- ─────────────────────────────────── -->
+      <!-- PANEL 3 · Review & payment         -->
+      <!-- ─────────────────────────────────── -->
+      <div class="panel" id="p3">
+        <h2>Review &amp; confirm</h2>
+        <p class="form-sub">Check everything carefully before completing your registration.</p>
+
+        <!-- Summary -->
+        <div class="review-box">
+          <div class="rb-title">Your submission summary</div>
+          <div class="rb-row">
+            <span class="rb-lbl">Name in book</span>
+            <span class="rb-val" id="rv-name">—</span>
+          </div>
+          <div class="rb-row">
+            <span class="rb-lbl">Email</span>
+            <span class="rb-val" id="rv-email">—</span>
+          </div>
+          <div class="rb-row" style="flex-direction:column;gap:6px;">
+            <span class="rb-lbl">Your sentence</span>
+            <span class="rb-val rb-sentence" id="rv-sentence">—</span>
+          </div>
+        </div>
+
+        <!-- Free founder badge (shown only if applicable) -->
+        <div class="free-spot-badge" id="free-badge" style="display:none;">
+          🎉 You qualify for a <strong>free Founder spot</strong> — no payment required!
+        </div>
+
+        <!-- Price (shown only if not founder) -->
+        <div class="price-box" id="price-box">
+          <div class="price-line">
+            <span>Contribution fee</span>
+            <span>$5.00</span>
+          </div>
+          <div class="price-line">
+            <span>Digital book on completion</span>
+            <span style="color:var(--success);">FREE</span>
+          </div>
+          <div class="price-line total">
+            <span>Total due today</span>
+            <span>$5.00</span>
+          </div>
+        </div>
+
+        <!-- Refund policy reminder -->
+        <div class="disclaimer" style="margin-bottom:18px;">
+          <div class="d-title">🔄 Refund policy</div>
+          <p>If your sentence is rejected after manual review, your full $5 payment will be refunded automatically to your original payment method within 5–10 business days. No questions asked.</p>
+        </div>
+
+        <button class="btn-main" id="btn-submit" onclick="submitForm()">
+          <span id="btn-submit-txt">Complete Registration — $5</span>
+        </button>
+        <button class="btn-back" onclick="next(2)" style="margin-top:10px;">← Back</button>
+        <div class="secure-note">🔒 Payments processed securely via Stripe. We never store card details.</div>
+      </div>
+
+      <!-- ─────────────────────────────────── -->
+      <!-- PANEL 4 · Success                  -->
+      <!-- ─────────────────────────────────── -->
+      <div class="panel" id="p4">
+        <div class="success-wrap">
+          <div class="success-circle">✓</div>
+          <h3>You're in the book!</h3>
+          <p>Your sentence has been received and is now <strong>pending manual review</strong> by our editorial team.</p>
+          <div class="pending-num" id="s-num">#PENDING</div>
+          <p style="font-size:12px;">This is your provisional number. It becomes permanent once your sentence is approved.</p>
+
+          <div class="review-notice">
+            ⏳ <strong>What happens next:</strong> Our editorial team will personally review your sentence within <strong>48 hours</strong>. You will receive an email at <strong id="s-email">—</strong> with the result. If approved, your spot is locked in permanently. If rejected for any reason, your payment is fully refunded.
+          </div>
+
+          <p style="font-size:13px;color:var(--muted);">Please check your inbox for your registration confirmation email.</p>
+
+          <!-- Referral link -->
+          <div class="ref-link-box">
+            <div class="ref-link-title">Your referral link</div>
+            <div class="ref-link-row">
+              <span class="ref-link-text" id="s-ref-link">https://onemillionsentences.com/join?ref=XXXXXX</span>
+              <button class="btn-copy" onclick="copyLink(this)">Copy</button>
+            </div>
+            <p class="ref-link-hint">Share this link. Every 5 people who join and pay through it earns you <strong>one free extra sentence</strong> in the book — with no limit.</p>
+          </div>
+
+          <a href="dashboard.html" class="btn-main" style="display:block;margin-top:20px;text-decoration:none;text-align:center;">Go to My Dashboard →</a>
+        </div>
+      </div>
+
+    </div><!-- /form-card -->
+  </div><!-- /page-wrap -->
+
+  <script>
+    /* ═══════════════════════════════════════════
+       CONFIG — update these from your database
+    ═══════════════════════════════════════════ */
+    const FOUNDER_LIMIT   = 100;
+    const FOUNDERS_TAKEN  = 0;   // ← update from DB: how many founder spots used
+    const IS_FOUNDER_SPOT = FOUNDERS_TAKEN < FOUNDER_LIMIT;
+
+    /* ═══════════════════════════════════════════
+       BANNED WORDS
+    ═══════════════════════════════════════════ */
+    const BANNED = [
+      // Political
+      'vote','election','democrat','republican','communist','socialist','liberal',
+      'conservative','government','parliament','president','politician','protest',
+      'revolution','militia','terrorist','politics','political','regime','dictator',
+      'coup','trump','biden','obama','putin','war','nato','nuclear','bomb','army',
+      // Religious
+      'god','allah','jesus','christ','bible','quran','koran','torah','prayer',
+      'mosque','church','temple','synagogue','worship','prophet','saint','holy',
+      'religion','religious','faith','heaven','hell','sin','pray','blessed',
+      'infidel','crusade','jihad','angel','devil','satan','pagan','pope','imam',
+      // Adult & offensive
+      'sex','sexual','nude','naked','porn','pornography','erotic','prostitute',
+      'rape','molest','fuck','shit','bitch','cunt','dick','cock','pussy',
+      'whore','slut','bastard','nigger','faggot','retard','kill','murder',
+      'suicide','drug','cocaine','heroin','meth','weed','marijuana','racist',
+      'genocide','massacre','torture','abuse','pedophile','incest'
+    ];
+
+    /* ═══════════════════════════════════════════
+       NON-ENGLISH DETECTION
+    ═══════════════════════════════════════════ */
+    const NON_ENG_PATTERN = /[\u0600-\u06FF\u0750-\u077F\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uAC00-\uD7AF\u0400-\u04FF\u0900-\u097F\u0980-\u09FF\u0A00-\u0A7F\u0B80-\u0BFF\u0C00-\u0C7F\u0D00-\u0D7F\u0E00-\u0E7F]/;
+
+    function isEnglish(text) {
+      if (!text || text.trim().length < 4) return true;
+      if (NON_ENG_PATTERN.test(text)) return false;
+      const nonAscii = (text.match(/[^\x00-\x7F]/g) || []).length;
+      const total    = text.replace(/\s/g,'').length;
+      return total === 0 || (nonAscii / total) < 0.2;
+    }
+
+    function bannedWord(text) {
+      const clean = text.toLowerCase().replace(/[^a-z\s]/g,' ');
+      const words = clean.split(/\s+/);
+      for (const w of words) {
+        if (BANNED.includes(w)) return w;
+      }
+      return null;
+    }
+
+    /* ═══════════════════════════════════════════
+       SENTENCE INPUT HANDLER
+    ═══════════════════════════════════════════ */
+    let langTimer  = null;
+    let sentenceOK = false;
+
+    function onSentenceInput(val) {
+      const len    = val.length;
+      const ctEl   = document.getElementById('char-ct');
+      const badge  = document.getElementById('lang-badge');
+      const aBanned= document.getElementById('a-banned');
+      const aLang  = document.getElementById('a-lang');
+
+      // char counter
+      ctEl.textContent = len + ' / 300';
+      ctEl.className = 'char-count' + (len > 280 ? ' over' : len > 240 ? ' warn' : '');
+
+      // hide old alerts
+      aBanned.classList.remove('show');
+      aLang.classList.remove('show');
+
+      if (len < 3) {
+        badge.className = 'lang-badge hidden';
+        sentenceOK = false;
+        updateBtn2();
+        return;
+      }
+
+      // Banned word check — instant
+      const bw = bannedWord(val);
+      if (bw) {
+        document.getElementById('a-banned-txt').textContent =
+          'Your sentence contains a restricted word: "' + bw + '". Please revise your sentence.';
+        aBanned.classList.add('show');
+        badge.className = 'lang-badge hidden';
+        sentenceOK = false;
+        updateBtn2();
+        return;
+      }
+
+      // Language check — debounced 600ms
+      clearTimeout(langTimer);
+      badge.className = 'lang-badge checking';
+      document.getElementById('lang-icon').textContent = '⏳';
+      document.getElementById('lang-txt').textContent  = 'Checking language…';
+
+      langTimer = setTimeout(() => {
+        const eng = isEnglish(val);
+        if (!eng) {
+          badge.className = 'lang-badge bad';
+          document.getElementById('lang-icon').textContent = '✗';
+          document.getElementById('lang-txt').textContent  = 'Non-English detected';
+          aLang.classList.add('show');
+          sentenceOK = false;
+        } else if (len >= 10) {
+          badge.className = 'lang-badge good';
+          document.getElementById('lang-icon').textContent = '✓';
+          document.getElementById('lang-txt').textContent  = 'English confirmed';
+          sentenceOK = true;
+        } else {
+          badge.className = 'lang-badge checking';
+          document.getElementById('lang-icon').textContent = 'ℹ';
+          document.getElementById('lang-txt').textContent  = 'Minimum 10 characters';
+          sentenceOK = false;
+        }
+        updateBtn2();
+      }, 600);
+    }
+
+    function updateBtn2() {
+      const allChecked = ['chk1','chk2','chk3','chk4'].every(id => document.getElementById(id).checked);
+      document.getElementById('btn2').disabled = !(sentenceOK && allChecked);
+    }
+
+    /* ═══════════════════════════════════════════
+       STEP NAVIGATION
+    ═══════════════════════════════════════════ */
+    function next(n) {
+      if (n === 2 && !validateP1()) return;
+      if (n === 3 && !validateP2()) return;
+      if (n === 3) fillReview();
+
+      // update panels
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('p' + n).classList.add('active');
+
+      // update dots
+      for (let i = 1; i <= 4; i++) {
+        const dot = document.getElementById('d' + i);
+        if (i < n)      { dot.className = 's-dot done';   dot.textContent = '✓'; }
+        else if (i === n){ dot.className = 's-dot active'; dot.textContent = i;   }
+        else             { dot.className = 's-dot';        dot.textContent = i;   }
+      }
+      for (let i = 1; i <= 3; i++) {
+        document.getElementById('l' + i).className = 's-line' + (i < n ? ' done' : '');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ═══════════════════════════════════════════
+       VALIDATION
+    ═══════════════════════════════════════════ */
+    function showE(id, show) {
+      document.getElementById(id).classList.toggle('show', show);
+    }
+
+    function setField(id, state) {
+      const el = document.getElementById(id);
+      el.classList.remove('err-field','ok-field');
+      if (state === 'err') el.classList.add('err-field');
+      if (state === 'ok')  el.classList.add('ok-field');
+    }
+
+    function validateP1() {
+      const first = document.getElementById('f-first').value.trim();
+      const last  = document.getElementById('f-last').value.trim();
+      const disp  = document.getElementById('f-display').value.trim();
+      const email = document.getElementById('f-email').value.trim();
+      const email2= document.getElementById('f-email2').value.trim();
+      const eRx   = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      let ok = true;
+
+      showE('e-first',  !first);  setField('f-first',  first  ? 'ok' : 'err'); if (!first)  ok = false;
+      showE('e-last',   !last);   setField('f-last',   last   ? 'ok' : 'err'); if (!last)   ok = false;
+      showE('e-display',!disp);   setField('f-display',disp   ? 'ok' : 'err'); if (!disp)   ok = false;
+      showE('e-email',  !eRx.test(email)); setField('f-email', eRx.test(email) ? 'ok' : 'err'); if (!eRx.test(email)) ok = false;
+      showE('e-email2', email !== email2); setField('f-email2',email === email2 ? 'ok' : 'err'); if (email !== email2) ok = false;
+
+      return ok;
+    }
+
+    function validateP2() {
+      const sent = document.getElementById('f-sentence').value.trim();
+      const allChecked = ['chk1','chk2','chk3','chk4'].every(id => document.getElementById(id).checked);
+      let ok = true;
+
+      showE('e-sentence', sent.length < 10);
+      if (sent.length < 10) ok = false;
+      if (!sentenceOK) ok = false;
+
+      showE('e-checks', !allChecked);
+      if (!allChecked) ok = false;
+
+      return ok;
+    }
+
+    /* ═══════════════════════════════════════════
+       FILL REVIEW PANEL
+    ═══════════════════════════════════════════ */
+    function fillReview() {
+      document.getElementById('rv-name').textContent    = document.getElementById('f-display').value.trim();
+      document.getElementById('rv-email').textContent   = document.getElementById('f-email').value.trim();
+      document.getElementById('rv-sentence').textContent= '"' + document.getElementById('f-sentence').value.trim() + '"';
+
+      if (IS_FOUNDER_SPOT) {
+        document.getElementById('free-badge').style.display = 'flex';
+        document.getElementById('price-box').style.display  = 'none';
+        document.getElementById('btn-submit-txt').textContent = 'Complete Free Registration →';
+      }
+    }
+
+    /* ═══════════════════════════════════════════
+       SUBMIT
+    ═══════════════════════════════════════════ */
+    function submitForm() {
+      const btn = document.getElementById('btn-submit');
+      btn.disabled = true;
+      document.getElementById('btn-submit-txt').textContent = 'Processing…';
+
+      // Simulate submission delay (replace with real API call to your backend)
+      setTimeout(() => {
+        const email   = document.getElementById('f-email').value.trim();
+        const refCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+        document.getElementById('s-email').textContent    = email;
+        document.getElementById('s-ref-link').textContent = 'https://onemillionsentences.com/join?ref=' + refCode;
+
+        next(4);
+      }, 1800);
+    }
+
+    /* ═══════════════════════════════════════════
+       COPY REFERRAL LINK
+    ═══════════════════════════════════════════ */
+    function copyLink(btn) {
+      const link = document.getElementById('s-ref-link').textContent;
+      navigator.clipboard.writeText(link).then(() => {
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 2200);
+      });
+    }
+
+    /* ═══════════════════════════════════════════
+       DETECT REFERRAL CODE IN URL
+    ═══════════════════════════════════════════ */
+    const params  = new URLSearchParams(window.location.search);
+    const refCode = params.get('ref');
+    if (refCode) {
+      document.getElementById('ref-banner').classList.add('show');
+      document.getElementById('ref-by-name').textContent = 'member ' + refCode;
+    }
+  </script>
+</body>
+</html>
