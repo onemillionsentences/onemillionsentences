@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel — One Million Sentences</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:        #0f0e0c;
+      --paper:      #faf8f3;
+      --cream:      #f2ede3;
+      --gold:       #c9a84c;
+      --gold-light: #f0d98a;
+      --blue:       #1a3a5c;
+      --blue-mid:   #2d6a9f;
+      --muted:      #7a7060;
+      --border:     #ddd8cc;
+      --white:      #ffffff;
+      --success:    #2d6a4f;
+      --success-bg: #eaf5ee;
+      --danger:     #8b2020;
+      --danger-bg:  #fdf0f0;
+      --warning:    #7a5a10;
+      --warning-bg: #fdf6e3;
+      --sidebar:    #0f0e0c;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: #f0ece4;
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 220px;
+      background: var(--sidebar);
+      min-height: 100vh;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 50;
+      flex-shrink: 0;
+    }
+
+    .sb-logo {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid rgba(250,248,243,0.08);
+    }
+
+    .sb-logo a {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--paper);
+      text-decoration: none;
+    }
+
+    .sb-logo a span { color: var(--gold); }
+
+    .sb-logo .admin-tag {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(250,248,243,0.3);
+      margin-top: 4px;
+    }
+
+    .sb-nav {
+      flex: 1;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .sb-section {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: rgba(250,248,243,0.25);
+      padding: 10px 8px 6px;
+      margin-top: 8px;
+    }
+
+    .sb-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(250,248,243,0.6);
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .sb-item:hover { background: rgba(250,248,243,0.07); color: var(--paper); }
+
+    .sb-item.active {
+      background: rgba(201,168,76,0.15);
+      color: var(--gold);
+    }
+
+    .sb-item .sb-icon { font-size: 16px; flex-shrink: 0; }
+
+    .sb-badge {
+      margin-left: auto;
+      background: var(--danger);
+      color: var(--white);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 100px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .sb-badge.gold { background: var(--gold); color: var(--ink); }
+
+    .sb-footer {
+      padding: 16px 12px;
+      border-top: 1px solid rgba(250,248,243,0.08);
+    }
+
+    .sb-admin-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .sb-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--gold);
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .sb-admin-name { font-size: 12px; color: rgba(250,248,243,0.7); font-weight: 500; }
+    .sb-admin-role { font-size: 10px; color: rgba(250,248,243,0.3); }
+
+    /* ── MAIN ── */
+    .main-area {
+      margin-left: 220px;
+      flex: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOP BAR */
+    .topbar {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .topbar-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .topbar-stat {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      background: var(--cream);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 100px;
+    }
+
+    .topbar-stat strong { color: var(--ink); }
+
+    /* CONTENT */
+    .content {
+      padding: 32px;
+      flex: 1;
+    }
+
+    /* ── STAT CARDS ── */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .sc {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sc::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+
+    .sc.blue::before   { background: linear-gradient(90deg, var(--blue-mid), #5a9fd4); }
+    .sc.gold::before   { background: linear-gradient(90deg, var(--gold), var(--gold-light)); }
+    .sc.green::before  { background: linear-gradient(90deg, var(--success), #52b788); }
+    .sc.red::before    { background: linear-gradient(90deg, var(--danger), #c0392b); }
+    .sc.purple::before { background: linear-gradient(90deg, #6b48ff, #a78bfa); }
+
+    .sc-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .sc-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* ── REVIEW SECTION ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .section-header h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .section-header p { font-size: 13px; color: var(--muted); }
+
+    /* FILTER TABS */
+    .filter-tabs {
+      display: flex;
+      gap: 0;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 3px;
+    }
+
+    .ft-btn {
+      padding: 7px 16px;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      font-size: 12px;
+      font-weight: 500;
+      font-family: 'Outfit', sans-serif;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ft-btn.active { background: var(--white); color: var(--ink); box-shadow: 0 1px 4px rgba(15,14,12,0.08); }
+
+    .ft-count {
+      background: var(--danger);
+      color: var(--white);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 100px;
+    }
+
+    .ft-btn.active .ft-count { background: var(--ink); }
+
+    /* SEARCH */
+    .search-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+      padding: 9px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      font-size: 13px;
+      font-family: 'Outfit', sans-serif;
+      background: var(--white);
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus { border-color: var(--gold); }
+
+    .sort-sel {
+      padding: 9px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      font-size: 13px;
+      font-family: 'Outfit', sans-serif;
+      background: var(--white);
+      color: var(--ink);
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* ── SENTENCE CARDS ── */
+    .sentences-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .sentence-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 24px;
+      position: relative;
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+
+    .sentence-card:hover { box-shadow: 0 4px 20px rgba(15,14,12,0.07); }
+
+    .sentence-card.approved { border-left: 4px solid var(--success); }
+    .sentence-card.rejected { border-left: 4px solid var(--danger); }
+    .sentence-card.pending  { border-left: 4px solid var(--gold); }
+
+    .sc-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .sc-info { flex: 1; }
+
+    .sc-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+
+    .sc-num-badge {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    .sc-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .sc-email {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .sc-date {
+      font-size: 11px;
+      color: var(--muted);
+      margin-left: auto;
+    }
+
+    .sc-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 100px;
+      flex-shrink: 0;
+    }
+
+    .sc-status.pending  { background: var(--warning-bg); color: var(--warning); border: 1px solid #e8d090; }
+    .sc-status.approved { background: var(--success-bg); color: var(--success); }
+    .sc-status.rejected { background: var(--danger-bg);  color: var(--danger); }
+
+    /* THE SENTENCE TEXT */
+    .sentence-text {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      font-style: italic;
+      line-height: 1.6;
+      color: var(--ink);
+      margin-bottom: 14px;
+      border-left: 3px solid var(--gold);
+    }
+
+    /* MEMBER INFO ROW */
+    .member-info {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .mi-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .mi-item strong { color: var(--ink); }
+
+    /* ACTION BUTTONS */
+    .action-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-approve {
+      background: var(--success);
+      color: var(--white);
+      border: none;
+      padding: 10px 22px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .btn-approve:hover { background: #235a40; transform: translateY(-1px); }
+
+    .btn-reject {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid #f5c0c0;
+      padding: 10px 22px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.2s, transform 0.15s;
+    }
+
+    .btn-reject:hover { background: var(--danger); color: var(--white); border-color: var(--danger); transform: translateY(-1px); }
+
+    .btn-view-profile {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 10px 18px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-view-profile:hover { border-color: var(--ink); color: var(--ink); }
+
+    .already-done {
+      font-size: 12px;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* ── REJECT MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,14,12,0.6);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(15,14,12,0.25);
+      animation: slideUp 0.3s ease both;
+    }
+
+    @keyframes slideUp {
+      from { opacity:0; transform:translateY(16px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .modal h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .modal > p { font-size: 13px; color: var(--muted); margin-bottom: 18px; line-height: 1.6; }
+
+    .modal .sentence-preview {
+      background: var(--cream);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 16px;
+      font-style: italic;
+      color: var(--ink);
+      margin-bottom: 16px;
+      border-left: 3px solid var(--danger);
+    }
+
+    .modal label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--ink);
+      margin-bottom: 7px;
+    }
+
+    .reason-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-bottom: 14px;
+    }
+
+    .reason-btn {
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      font-size: 13px;
+      font-family: 'Outfit', sans-serif;
+      background: var(--white);
+      color: var(--ink);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+    }
+
+    .reason-btn:hover { border-color: var(--danger); background: var(--danger-bg); }
+    .reason-btn.selected { border-color: var(--danger); background: var(--danger-bg); color: var(--danger); font-weight: 500; }
+
+    .modal textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      font-size: 13px;
+      font-family: 'Outfit', sans-serif;
+      resize: vertical;
+      min-height: 80px;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 16px;
+    }
+
+    .modal textarea:focus { border-color: var(--danger); }
+
+    .modal-footer { display: flex; gap: 10px; }
+
+    .btn-confirm-reject {
+      flex: 1;
+      background: var(--danger);
+      color: var(--white);
+      border: none;
+      padding: 12px;
+      border-radius: 9px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-confirm-reject:hover { background: #6b1414; }
+
+    .btn-cancel {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 12px 18px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-cancel:hover { border-color: var(--ink); color: var(--ink); }
+
+    /* ── APPROVE SUCCESS TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 8px 32px rgba(15,14,12,0.25);
+      z-index: 300;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success .t-icon { color: #52b788; }
+    .toast.reject  .t-icon { color: #f87171; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+
+    .empty-state .es-icon { font-size: 44px; margin-bottom: 14px; display: block; }
+    .empty-state h3 { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:700; margin-bottom:8px; }
+    .empty-state p  { font-size:14px; color:var(--muted); line-height:1.65; }
+
+    /* ── PAGINATION ── */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .pg-btn {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--white);
+      font-size: 13px;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .pg-btn:hover:not(:disabled) { border-color: var(--ink); }
+    .pg-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .pg-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* ── OVERVIEW STATS ── */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .ov-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 24px;
+    }
+
+    .ov-card h4 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .ov-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ov-row:last-child { border-bottom: none; }
+    .ov-row .or-lbl { color: var(--muted); }
+    .ov-row .or-val { font-weight: 600; }
+
+    /* PAGES */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .sidebar { width: 60px; }
+      .sb-logo, .sb-section, .sb-admin-info, .sb-item span:not(.sb-icon) { display: none; }
+      .sb-item { justify-content: center; padding: 12px; }
+      .main-area { margin-left: 60px; }
+      .stat-row { grid-template-columns: repeat(2,1fr); }
+      .content { padding: 20px; }
+      .topbar { padding: 0 20px; }
+    }
+
+    @media (max-width: 600px) {
+      .stat-row { grid-template-columns: 1fr 1fr; }
+      .overview-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════
+       SIDEBAR
+  ══════════════════════════════════════ -->
+  <div class="sidebar">
+    <div class="sb-logo">
+      <a href="index.html">One Million<span>.</span></a>
+      <div class="admin-tag">Admin Panel</div>
+    </div>
+
+    <nav class="sb-nav">
+      <div class="sb-section">Main</div>
+      <a class="sb-item active" onclick="showPage('review')" href="#">
+        <span class="sb-icon">📋</span>
+        <span>Review Sentences</span>
+        <span class="sb-badge" id="sb-pending-count">0</span>
+      </a>
+      <a class="sb-item" onclick="showPage('overview')" href="#">
+        <span class="sb-icon">📊</span>
+        <span>Overview</span>
+      </a>
+      <a class="sb-item" onclick="showPage('members')" href="#">
+        <span class="sb-icon">👥</span>
+        <span>All Members</span>
+      </a>
+
+      <div class="sb-section">Actions</div>
+      <a class="sb-item" href="participants.html" target="_blank">
+        <span class="sb-icon">👁</span>
+        <span>View Public Page</span>
+      </a>
+      <a class="sb-item" href="index.html" target="_blank">
+        <span class="sb-icon">🌐</span>
+        <span>View Website</span>
+      </a>
+
+      <div class="sb-section">Settings</div>
+      <a class="sb-item" onclick="showPage('settings')" href="#">
+        <span class="sb-icon">⚙️</span>
+        <span>Settings</span>
+      </a>
+    </nav>
+
+    <div class="sb-footer">
+      <div class="sb-admin-info">
+        <div class="sb-avatar">A</div>
+        <div>
+          <div class="sb-admin-name">Admin</div>
+          <div class="sb-admin-role">Owner</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       MAIN AREA
+  ══════════════════════════════════════ -->
+  <div class="main-area">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Review Sentences</div>
+      <div class="topbar-right">
+        <div class="topbar-stat">
+          🟡 Pending: <strong id="tb-pending">0</strong>
+        </div>
+        <div class="topbar-stat">
+          ✅ Approved: <strong id="tb-approved">0</strong>
+        </div>
+        <div class="topbar-stat">
+          💰 Revenue: <strong id="tb-revenue">$0</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- ══════════════════════════════
+           PAGE: REVIEW SENTENCES
+      ══════════════════════════════ -->
+      <div class="page active" id="page-review">
+
+        <div class="section-header">
+          <div>
+            <h2>Sentence Review Queue</h2>
+            <p>Review each sentence carefully — only you can approve or reject</p>
+          </div>
+          <div class="filter-tabs">
+            <button class="ft-btn active" onclick="setTab('pending',this)">
+              ⏳ Pending <span class="ft-count" id="ft-pending">0</span>
+            </button>
+            <button class="ft-btn" onclick="setTab('approved',this)">
+              ✅ Approved
+            </button>
+            <button class="ft-btn" onclick="setTab('rejected',this)">
+              ❌ Rejected
+            </button>
+            <button class="ft-btn" onclick="setTab('all',this)">
+              All
+            </button>
+          </div>
+        </div>
+
+        <div class="search-bar">
+          <input type="text" class="search-input" id="search-input" placeholder="Search by name, email or sentence…" oninput="renderList()"/>
+          <select class="sort-sel" id="sort-sel" onchange="renderList()">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="name">By name</option>
+          </select>
+        </div>
+
+        <div class="sentences-list" id="sentences-list"></div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+
+      <!-- ══════════════════════════════
+           PAGE: OVERVIEW
+      ══════════════════════════════ -->
+      <div class="page" id="page-overview">
+        <div class="section-header">
+          <div><h2>Project Overview</h2><p>Live statistics for your project</p></div>
+        </div>
+
+        <div class="stat-row">
+          <div class="sc blue">
+            <span class="sc-num" id="ov-total">0</span>
+            <div class="sc-lbl">Total submissions</div>
+          </div>
+          <div class="sc green">
+            <span class="sc-num" id="ov-approved">0</span>
+            <div class="sc-lbl">Approved sentences</div>
+          </div>
+          <div class="sc" style="border-top:3px solid var(--warning);">
+            <span class="sc-num" id="ov-pending">0</span>
+            <div class="sc-lbl">Pending review</div>
+          </div>
+          <div class="sc red">
+            <span class="sc-num" id="ov-rejected">0</span>
+            <div class="sc-lbl">Rejected</div>
+          </div>
+          <div class="sc gold">
+            <span class="sc-num" id="ov-revenue">$0</span>
+            <div class="sc-lbl">Total revenue</div>
+          </div>
+        </div>
+
+        <div class="overview-grid">
+          <div class="ov-card">
+            <h4>Book progress</h4>
+            <div class="ov-row"><span class="or-lbl">Approved sentences</span><span class="or-val" id="prog-approved">0</span></div>
+            <div class="ov-row"><span class="or-lbl">Goal</span><span class="or-val">1,000,000</span></div>
+            <div class="ov-row"><span class="or-lbl">Completion</span><span class="or-val" id="prog-pct">0%</span></div>
+            <div class="ov-row"><span class="or-lbl">Remaining spots</span><span class="or-val" id="prog-remaining">1,000,000</span></div>
+            <div style="height:6px;background:var(--cream);border-radius:100px;overflow:hidden;margin-top:14px;">
+              <div id="prog-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:100px;transition:width 1.2s ease;"></div>
+            </div>
+          </div>
+
+          <div class="ov-card">
+            <h4>Financial summary</h4>
+            <div class="ov-row"><span class="or-lbl">Paid members</span><span class="or-val" id="fin-paid">0</span></div>
+            <div class="ov-row"><span class="or-lbl">Free founders</span><span class="or-val" id="fin-founders">0</span></div>
+            <div class="ov-row"><span class="or-lbl">Revenue collected</span><span class="or-val" id="fin-revenue">$0</span></div>
+            <div class="ov-row"><span class="or-lbl">Refunds issued</span><span class="or-val" id="fin-refunds">$0</span></div>
+            <div class="ov-row"><span class="or-lbl">Net revenue</span><span class="or-val" id="fin-net">$0</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════
+           PAGE: ALL MEMBERS
+      ══════════════════════════════ -->
+      <div class="page" id="page-members">
+        <div class="section-header">
+          <div><h2>All Members</h2><p>Every registered member and their status</p></div>
+        </div>
+        <div class="search-bar">
+          <input type="text" class="search-input" id="member-search" placeholder="Search members…" oninput="renderMembers()"/>
+        </div>
+        <div id="members-list"></div>
+      </div>
+
+      <!-- ══════════════════════════════
+           PAGE: SETTINGS
+      ══════════════════════════════ -->
+      <div class="page" id="page-settings">
+        <div class="section-header">
+          <div><h2>Project Settings</h2><p>Control key project parameters</p></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+          <div class="ov-card">
+            <h4>Registration</h4>
+            <div style="display:flex;flex-direction:column;gap:14px;margin-top:14px;">
+              <div>
+                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--ink);display:block;margin-bottom:6px;">Free founder spots limit</label>
+                <input type="number" value="100" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:'Outfit',sans-serif;outline:none;"/>
+              </div>
+              <div>
+                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--ink);display:block;margin-bottom:6px;">Contribution price ($)</label>
+                <input type="number" value="5" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:'Outfit',sans-serif;outline:none;"/>
+              </div>
+              <div>
+                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--ink);display:block;margin-bottom:6px;">Book sale price ($)</label>
+                <input type="number" value="19" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:'Outfit',sans-serif;outline:none;"/>
+              </div>
+              <div>
+                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--ink);display:block;margin-bottom:6px;">Referrals needed per free sentence</label>
+                <input type="number" value="5" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:'Outfit',sans-serif;outline:none;"/>
+              </div>
+            </div>
+          </div>
+
+          <div class="ov-card">
+            <h4>Notifications</h4>
+            <div style="display:flex;flex-direction:column;gap:14px;margin-top:14px;font-size:13px;color:var(--muted);">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+                <span>Email me when a new sentence is submitted</span>
+                <input type="checkbox" checked style="accent-color:var(--ink);width:16px;height:16px;"/>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+                <span>Email me every 100 approved sentences</span>
+                <input type="checkbox" checked style="accent-color:var(--ink);width:16px;height:16px;"/>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;">
+                <span>Email me daily summary</span>
+                <input type="checkbox" style="accent-color:var(--ink);width:16px;height:16px;"/>
+              </div>
+            </div>
+            <div style="margin-top:18px;">
+              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--ink);display:block;margin-bottom:6px;">Admin email</label>
+              <input type="email" placeholder="your@email.com" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:'Outfit',sans-serif;outline:none;"/>
+            </div>
+          </div>
+
+        </div>
+
+        <button style="margin-top:18px;background:var(--ink);color:var(--paper);border:none;padding:12px 28px;border-radius:9px;font-size:14px;font-weight:500;font-family:'Outfit',sans-serif;cursor:pointer;" onclick="alert('Settings saved! (Connect to backend to persist)')">
+          Save Settings
+        </button>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main-area -->
+
+  <!-- REJECT MODAL -->
+  <div class="modal-overlay" id="reject-modal" onclick="closeRejectModal(event)">
+    <div class="modal">
+      <h3>Reject this sentence</h3>
+      <p>Select a reason below. The member will receive an email with this reason and a full refund.</p>
+
+      <div class="sentence-preview" id="modal-sentence-text">—</div>
+
+      <label>Select rejection reason</label>
+      <div class="reason-btns" id="reason-btns">
+        <button class="reason-btn" onclick="selectReason(this, 'Contains religious content')">⛪ Contains religious content</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Contains political content')">🏛 Contains political content</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Contains adult or inappropriate content')">🔞 Contains adult or inappropriate content</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Contains offensive or hateful language')">🚫 Contains offensive or hateful language</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Appears to be copied or plagiarised')">📋 Appears to be copied or plagiarised</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Not written in English')">🌐 Not written in English</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Other (see note below)')">✏️ Other</button>
+      </div>
+
+      <label>Additional note (optional)</label>
+      <textarea id="reject-note" placeholder="Add a personal note to the member…"></textarea>
+
+      <div class="modal-footer">
+        <button class="btn-confirm-reject" onclick="confirmReject()">Reject & Send Refund Email</button>
+        <button class="btn-cancel" onclick="closeRejectModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast">
+    <span class="t-icon" id="toast-icon">✅</span>
+    <span id="toast-msg">Action completed</span>
+  </div>
+
+  <script>
+    /* ═══════════════════════════════════════════════════
+       PASSWORD PROTECTION
+    ═══════════════════════════════════════════════════ */
+    (function() {
+      const ADMIN_PASS = 'MillionAdmin2026!';
+      const stored = sessionStorage.getItem('admin_auth');
+      if (stored !== ADMIN_PASS) {
+        const input = prompt('🔒 Enter Admin Password:');
+        if (input !== ADMIN_PASS) {
+          document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;font-size:18px;color:#8b2020;">❌ Access Denied. Wrong password.</div>';
+          throw new Error('Access denied');
+        }
+        sessionStorage.setItem('admin_auth', ADMIN_PASS);
+      }
+    })();
+
+    /* ═══════════════════════════════════════════════════
+       SUPABASE CONFIG
+    ═══════════════════════════════════════════════════ */
+    const SUPABASE_URL = 'https://getebatmpkrfhgkqxdig.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_ZoXks0auwur0m0er1frpOA_CkI7GfAz';
+
+    let SUBMISSIONS = [];
+
+    /* ═══════════════════════════════════════════════════
+       LOAD FROM SUPABASE
+    ═══════════════════════════════════════════════════ */
+    async function loadSubmissions() {
+      try {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/sentences?select=id,content,status,rejection_reason,created_at,contributor_id,contributors(id,display_name,email,free_sentences,country)&order=id.desc`,
+          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+        );
+        const data = await res.json();
+
+        const cRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/contributors?select=id&order=id.asc`,
+          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+        );
+        const contributors = await cRes.json();
+        const founderIds = new Set(contributors.slice(0,100).map(c => c.id));
+
+        SUBMISSIONS = data.map(s => {
+          const c = s.contributors || {};
+          const isFounder = founderIds.has(c.id);
+          const date = s.created_at ? new Date(s.created_at).toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'}) : '';
+          return {
+            id:              s.id,
+            contributor_id:  c.id,
+            name:            c.display_name || 'Unknown',
+            email:           c.email || '',
+            country:         c.country || '',
+            sentence:        s.content || '',
+            status:          s.status || 'pending',
+            isFounder:       isFounder,
+            isPaid:          !isFounder,
+            amount:          isFounder ? 0 : 5,
+            submittedAt:     date,
+            rejectionReason: s.rejection_reason || ''
+          };
+        });
+
+        updateStats();
+        renderList();
+        renderMembers();
+
+      } catch(e) {
+        console.error('Failed to load:', e);
+        updateStats();
+        renderList();
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       STATE
+    ═══════════════════════════════════════════════════ */
+    let currentTab    = 'pending';
+    let currentPage_r = 1;
+    const PER_PAGE_R  = 10;
+    let rejectingId   = null;
+    let selectedReason= '';
+
+    /* ═══════════════════════════════════════════════════
+       INIT STATS
+    ═══════════════════════════════════════════════════ */
+    function updateStats() {
+      const total    = SUBMISSIONS.length;
+      const approved = SUBMISSIONS.filter(s => s.status === 'approved').length;
+      const pending  = SUBMISSIONS.filter(s => s.status === 'pending').length;
+      const rejected = SUBMISSIONS.filter(s => s.status === 'rejected').length;
+      const revenue  = SUBMISSIONS.filter(s => s.isPaid && s.status !== 'rejected').reduce((a,s)=>a+s.amount,0);
+      const refunds  = SUBMISSIONS.filter(s => s.isPaid && s.status === 'rejected').reduce((a,s)=>a+s.amount,0);
+      const founders = SUBMISSIONS.filter(s => s.isFounder).length;
+      const paid     = SUBMISSIONS.filter(s => s.isPaid).length;
+
+      document.getElementById('tb-pending').textContent  = pending;
+      document.getElementById('tb-approved').textContent = approved;
+      document.getElementById('tb-revenue').textContent  = '$' + revenue;
+      document.getElementById('sb-pending-count').textContent = pending;
+
+      document.getElementById('ft-pending').textContent = pending;
+
+      document.getElementById('ov-total').textContent    = total;
+      document.getElementById('ov-approved').textContent = approved;
+      document.getElementById('ov-pending').textContent  = pending;
+      document.getElementById('ov-rejected').textContent = rejected;
+      document.getElementById('ov-revenue').textContent  = '$' + revenue;
+
+      document.getElementById('prog-approved').textContent  = approved;
+      document.getElementById('prog-pct').textContent       = (approved/10000).toFixed(4) + '%';
+      document.getElementById('prog-remaining').textContent = (1000000-approved).toLocaleString();
+      setTimeout(()=>{ document.getElementById('prog-bar').style.width = Math.min(approved/10000,100)+'%'; },300);
+
+      document.getElementById('fin-paid').textContent    = paid;
+      document.getElementById('fin-founders').textContent= founders;
+      document.getElementById('fin-revenue').textContent = '$' + revenue;
+      document.getElementById('fin-refunds').textContent = '$' + refunds;
+      document.getElementById('fin-net').textContent     = '$' + (revenue - refunds);
+    }
+
+    /* ═══════════════════════════════════════════════════
+       RENDER LIST
+    ═══════════════════════════════════════════════════ */
+    function renderList() {
+      const query  = (document.getElementById('search-input')?.value || '').toLowerCase();
+      const sort   = document.getElementById('sort-sel')?.value || 'newest';
+
+      let list = SUBMISSIONS.filter(s => {
+        const matchTab =
+          currentTab === 'all'      ? true :
+          currentTab === 'pending'  ? s.status === 'pending'  :
+          currentTab === 'approved' ? s.status === 'approved' :
+          currentTab === 'rejected' ? s.status === 'rejected' : true;
+
+        const matchQ = !query ||
+          s.name.toLowerCase().includes(query) ||
+          s.email.toLowerCase().includes(query) ||
+          s.sentence.toLowerCase().includes(query);
+
+        return matchTab && matchQ;
+      });
+
+      list.sort((a,b) =>
+        sort === 'oldest' ? a.id - b.id :
+        sort === 'name'   ? a.name.localeCompare(b.name) :
+        b.id - a.id
+      );
+
+      const total = list.length;
+      const pages = Math.ceil(total / PER_PAGE_R);
+      if (currentPage_r > pages) currentPage_r = 1;
+      const page  = list.slice((currentPage_r-1)*PER_PAGE_R, currentPage_r*PER_PAGE_R);
+
+      const container = document.getElementById('sentences-list');
+
+      if (total === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <span class="es-icon">${currentTab==='pending'?'🎉':'🔍'}</span>
+            <h3>${currentTab==='pending' ? 'No pending sentences!' : 'No results found'}</h3>
+            <p>${currentTab==='pending' ? 'All submissions have been reviewed. Great work!' : 'Try a different search term.'}</p>
+          </div>`;
+        document.getElementById('pagination').innerHTML = '';
+        return;
+      }
+
+      container.innerHTML = page.map(s => {
+        const actionBtns = s.status === 'pending'
+          ? `<button class="btn-approve" onclick="approveSentence(${s.id})">✅ Approve</button>
+             <button class="btn-reject"  onclick="openRejectModal(${s.id})">❌ Reject</button>`
+          : s.status === 'approved'
+          ? `<span class="already-done">✅ Approved — sentence #${s.id.toString().padStart(6,'0')} is in the book</span>`
+          : `<span class="already-done">❌ Rejected — refund issued. Reason: ${s.rejectionReason}</span>`;
+
+        return `
+          <div class="sentence-card ${s.status}" id="card-${s.id}">
+            <div class="sc-top">
+              <div class="sc-info">
+                <div class="sc-meta">
+                  <span class="sc-num-badge">#${s.id.toString().padStart(6,'0')}</span>
+                  <span class="sc-name">${s.name}</span>
+                  <span class="sc-email">${s.email}</span>
+                  <span class="sc-date">${s.submittedAt}</span>
+                </div>
+              </div>
+              <div class="sc-status ${s.status}">
+                ${s.status === 'pending' ? '⏳ Pending' : s.status === 'approved' ? '✅ Approved' : '❌ Rejected'}
+              </div>
+            </div>
+
+            <div class="sentence-text">"${s.sentence}"</div>
+
+            <div class="member-info">
+              <div class="mi-item">💳 <strong>${s.isFounder ? 'Free Founder' : 'Paid $'+s.amount}</strong></div>
+              <div class="mi-item">📅 Submitted: <strong>${s.submittedAt}</strong></div>
+              <div class="mi-item">📧 Book will be sent to: <strong>${s.email}</strong></div>
+            </div>
+
+            <div class="action-row">${actionBtns}</div>
+          </div>`;
+      }).join('');
+
+      // Pagination
+      const pg = document.getElementById('pagination');
+      if (pages <= 1) { pg.innerHTML = ''; return; }
+      let html = `<button class="pg-btn" onclick="goPageR(${currentPage_r-1})" ${currentPage_r===1?'disabled':''}>←</button>`;
+      for (let i=1; i<=pages; i++) {
+        html += `<button class="pg-btn ${i===currentPage_r?'active':''}" onclick="goPageR(${i})">${i}</button>`;
+      }
+      html += `<button class="pg-btn" onclick="goPageR(${currentPage_r+1})" ${currentPage_r===pages?'disabled':''}>→</button>`;
+      pg.innerHTML = html;
+    }
+
+    function goPageR(n) {
+      const pages = Math.ceil(SUBMISSIONS.filter(s => currentTab==='all'||s.status===currentTab).length / PER_PAGE_R);
+      if (n<1||n>pages) return;
+      currentPage_r = n;
+      renderList();
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    /* ═══════════════════════════════════════════════════
+       APPROVE
+    ═══════════════════════════════════════════════════ */
+    async function approveSentence(id) {
+      const s = SUBMISSIONS.find(x => x.id === id);
+      if (!s) return;
+
+      try {
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/sentences?id=eq.${id}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'apikey': SUPABASE_KEY,
+              'Authorization': `Bearer ${SUPABASE_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: 'approved' })
+          }
+        );
+        s.status = 'approved';
+        updateStats();
+        renderList();
+        renderMembers();
+        showToast('success', '✅ Sentence approved! — ' + s.name);
+      } catch(e) {
+        showToast('reject', '❌ Failed to approve. Try again.');
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       REJECT MODAL
+    ═══════════════════════════════════════════════════ */
+    function openRejectModal(id) {
+      rejectingId    = id;
+      selectedReason = '';
+      const s = SUBMISSIONS.find(x => x.id === id);
+      document.getElementById('modal-sentence-text').textContent = '"' + s.sentence + '"';
+      document.querySelectorAll('.reason-btn').forEach(b => b.classList.remove('selected'));
+      document.getElementById('reject-note').value = '';
+      document.getElementById('reject-modal').classList.add('open');
+    }
+
+    function closeRejectModal(e) {
+      if (!e || e.target === document.getElementById('reject-modal')) {
+        document.getElementById('reject-modal').classList.remove('open');
+        rejectingId = null;
+      }
+    }
+
+    function selectReason(btn, reason) {
+      document.querySelectorAll('.reason-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedReason = reason;
+    }
+
+    async function confirmReject() {
+      if (!selectedReason) { alert('Please select a rejection reason.'); return; }
+      const s = SUBMISSIONS.find(x => x.id === rejectingId);
+      if (!s) return;
+      const note = document.getElementById('reject-note').value.trim();
+      const reason = selectedReason + (note ? ' — ' + note : '');
+
+      try {
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/sentences?id=eq.${rejectingId}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'apikey': SUPABASE_KEY,
+              'Authorization': `Bearer ${SUPABASE_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: 'rejected', rejection_reason: reason })
+          }
+        );
+        s.status          = 'rejected';
+        s.rejectionReason = reason;
+        document.getElementById('reject-modal').classList.remove('open');
+        updateStats();
+        renderList();
+        renderMembers();
+        showToast('reject', '❌ Sentence rejected — ' + s.name);
+      } catch(e) {
+        showToast('reject', '❌ Failed to reject. Try again.');
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       MEMBERS PAGE
+    ═══════════════════════════════════════════════════ */
+    function renderMembers() {
+      const query = (document.getElementById('member-search')?.value||'').toLowerCase();
+      const list  = SUBMISSIONS.filter(s =>
+        !query || s.name.toLowerCase().includes(query) || s.email.toLowerCase().includes(query)
+      );
+
+      const container = document.getElementById('members-list');
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="empty-state"><span class="es-icon">👥</span><h3>No members yet</h3><p>Members will appear here as people register and submit sentences.</p></div>`;
+        return;
+      }
+
+      container.innerHTML = `
+        <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:var(--cream);">
+                <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);">#</th>
+                <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);">Member</th>
+                <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);">Email</th>
+                <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);">Type</th>
+                <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);">Status</th>
+                <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);">Joined</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${list.map(s => `
+                <tr style="border-top:1px solid var(--border);">
+                  <td style="padding:12px 16px;font-size:13px;color:var(--muted);">${s.id.toString().padStart(6,'0')}</td>
+                  <td style="padding:12px 16px;font-size:14px;font-weight:500;">${s.name}</td>
+                  <td style="padding:12px 16px;font-size:13px;color:var(--muted);">${s.email}</td>
+                  <td style="padding:12px 16px;">
+                    <span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:100px;background:${s.isFounder?'var(--ink)':'var(--success-bg)'};color:${s.isFounder?'var(--gold)':'var(--success)'};">
+                      ${s.isFounder ? '👑 Founder' : '💳 Paid $5'}
+                    </span>
+                  </td>
+                  <td style="padding:12px 16px;">
+                    <span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:100px;
+                      background:${s.status==='approved'?'var(--success-bg)':s.status==='rejected'?'var(--danger-bg)':'var(--warning-bg)'};
+                      color:${s.status==='approved'?'var(--success)':s.status==='rejected'?'var(--danger)':'var(--warning)'};">
+                      ${s.status==='approved'?'✅ Approved':s.status==='rejected'?'❌ Rejected':'⏳ Pending'}
+                    </span>
+                  </td>
+                  <td style="padding:12px 16px;font-size:12px;color:var(--muted);">${s.submittedAt}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       NAVIGATION
+    ═══════════════════════════════════════════════════ */
+    const PAGE_TITLES = {
+      review:'Review Sentences', overview:'Overview',
+      members:'All Members', settings:'Settings'
+    };
+
+    function showPage(name) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + name).classList.add('active');
+      document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      document.getElementById('topbar-title').textContent = PAGE_TITLES[name] || name;
+      if (name === 'overview') updateStats();
+      if (name === 'members')  renderMembers();
+    }
+
+    function setTab(tab, btn) {
+      currentTab    = tab;
+      currentPage_r = 1;
+      document.querySelectorAll('.ft-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderList();
+    }
+
+    /* ═══════════════════════════════════════════════════
+       TOAST
+    ═══════════════════════════════════════════════════ */
+    function showToast(type, msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      toast.className = 'toast ' + type;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+
+    /* ═══════════════════════════════════════════════════
+       RUN
+    ═══════════════════════════════════════════════════ */
+    loadSubmissions();
+  </script>
+</body>
+</html>
