@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — One Million Sentences</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f5f4f0; color: #1a1a1a; }
+
+  .header { background: #1a1a1a; color: #fff; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
+  .header h1 { font-size: 18px; font-weight: 700; }
+  .header span { color: #c9a84c; font-size: 13px; }
+
+  .stats { display: flex; gap: 16px; padding: 24px 32px; flex-wrap: wrap; }
+  .stat-card { background: #fff; border-radius: 12px; padding: 16px 24px; flex: 1; min-width: 140px; border: 1px solid #e8e6e0; }
+  .stat-card .num { font-size: 28px; font-weight: 800; color: #1a1a1a; }
+  .stat-card .lbl { font-size: 12px; color: #888; margin-top: 4px; }
+
+  .main { padding: 0 32px 40px; }
+  .section-title { font-size: 20px; font-weight: 700; margin-bottom: 16px; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .tab { padding: 8px 20px; border-radius: 100px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; background: #e8e6e0; color: #555; }
+  .tab.active { background: #1a1a1a; color: #fff; }
+
+  .card { background: #fff; border-radius: 14px; padding: 20px 24px; margin-bottom: 14px; border: 1px solid #e8e6e0; }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .card-sentence { font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; line-height: 1.5; flex: 1; }
+  .card-meta { font-size: 12px; color: #888; margin-bottom: 12px; }
+  .card-meta span { margin-right: 12px; }
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; }
+  .badge-pending  { background: #fff8e0; color: #b8860b; }
+  .badge-approved { background: #e6f9ee; color: #1a7a40; }
+  .badge-rejected { background: #fde8e8; color: #c0392b; }
+  .badge-founder  { background: #1a1a1a; color: #c9a84c; }
+
+  .actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .btn { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: opacity .2s; }
+  .btn:hover { opacity: .8; }
+  .btn-approve { background: #1a7a40; color: #fff; }
+  .btn-reject  { background: #c0392b; color: #fff; }
+  .btn-undo    { background: #888; color: #fff; }
+
+  .rejection-box { margin-top: 12px; padding: 12px; background: #fff8f8; border-radius: 8px; border: 1px solid #f5c6c6; display: none; }
+  .rejection-box.open { display: block; }
+  .rejection-box label { font-size: 12px; font-weight: 600; display: block; margin-bottom: 8px; color: #c0392b; }
+  .reasons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .reason-btn { padding: 5px 12px; border-radius: 100px; border: 1px solid #e0d0d0; background: #fff; cursor: pointer; font-size: 12px; }
+  .reason-btn.selected { background: #c0392b; color: #fff; border-color: #c0392b; }
+  .confirm-reject { background: #c0392b; color: #fff; padding: 8px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; }
+
+  .empty { text-align: center; padding: 60px 20px; color: #aaa; }
+  .empty .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty p { font-size: 15px; }
+
+  .loading { text-align: center; padding: 60px; color: #888; font-size: 15px; }
+
+  .members-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid #e8e6e0; }
+  .members-table th { background: #f5f4f0; padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase; }
+  .members-table td { padding: 12px 16px; font-size: 13px; border-top: 1px solid #f0eeea; }
+
+  .toast { position: fixed; bottom: 24px; right: 24px; background: #1a1a1a; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; display: none; z-index: 999; }
+  .toast.show { display: block; }
+  .toast.success { background: #1a7a40; }
+  .toast.error   { background: #c0392b; }
+
+  .nav { display: flex; gap: 0; margin-bottom: 28px; border-bottom: 2px solid #e8e6e0; }
+  .nav-btn { padding: 12px 24px; border: none; background: none; cursor: pointer; font-size: 14px; font-weight: 600; color: #888; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+  .nav-btn.active { color: #1a1a1a; border-bottom-color: #c9a84c; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>⚡ One Million Sentences — Admin</h1>
+  <span id="header-counts">Loading...</span>
+</div>
+
+<div class="stats">
+  <div class="stat-card"><div class="num" id="s-pending">0</div><div class="lbl">⏳ Pending</div></div>
+  <div class="stat-card"><div class="num" id="s-approved">0</div><div class="lbl">✅ Approved</div></div>
+  <div class="stat-card"><div class="num" id="s-rejected">0</div><div class="lbl">❌ Rejected</div></div>
+  <div class="stat-card"><div class="num" id="s-members">0</div><div class="lbl">👥 Members</div></div>
+</div>
+
+<div class="main">
+  <div class="nav">
+    <button class="nav-btn active" onclick="showPage('sentences',this)">📋 Review Sentences</button>
+    <button class="nav-btn" onclick="showPage('members',this)">👥 All Members</button>
+  </div>
+
+  <!-- SENTENCES PAGE -->
+  <div id="page-sentences">
+    <div class="tabs">
+      <button class="tab active" onclick="setTab('pending',this)">⏳ Pending <span id="tab-pending-count"></span></button>
+      <button class="tab" onclick="setTab('approved',this)">✅ Approved</button>
+      <button class="tab" onclick="setTab('rejected',this)">❌ Rejected</button>
+      <button class="tab" onclick="setTab('all',this)">All</button>
+    </div>
+    <div id="sentences-list"><div class="loading">⏳ Loading sentences...</div></div>
+  </div>
+
+  <!-- MEMBERS PAGE -->
+  <div id="page-members" style="display:none;">
+    <div class="section-title">All Members</div>
+    <div id="members-list"><div class="loading">⏳ Loading members...</div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://getebatmpkrfhgkqxdig.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdldGViYXRtcGtyZmhna3F4ZGlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1ODYyODUsImV4cCI6MjA5NTE2MjI4NX0.VrD4PNpkFXeeiXpKIipgs6lSdwoTyTPHXuqZR3AzNCA';
+
+// PASSWORD CHECK
+(function(){
+  const PASS = 'MillionAdmin2026!';
+  if(sessionStorage.getItem('admin_ok') !== '1'){
+    const input = prompt('🔒 Admin Password:');
+    if(input !== PASS){
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:20px;color:#c0392b;">❌ Access Denied</div>';
+      throw new Error('denied');
+    }
+    sessionStorage.setItem('admin_ok','1');
+  }
+})();
+
+const HEADERS = {
+  'apikey': SUPABASE_KEY,
+  'Authorization': 'Bearer ' + SUPABASE_KEY,
+  'Content-Type': 'application/json'
+};
+
+let allSentences = [];
+let allMembers = [];
+let currentTab = 'pending';
+let openRejectId = null;
+
+async function db(path) {
+  const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, { headers: HEADERS });
+  return r.json();
+}
+
+async function dbPatch(path, body) {
+  return fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    method: 'PATCH',
+    headers: HEADERS,
+    body: JSON.stringify(body)
+  });
+}
+
+async function loadAll() {
+  try {
+    const [sentences, members] = await Promise.all([
+      db('sentences?select=id,sentence_text,status,rejection_reason,created_at,contributor_id&order=id.desc'),
+      db('contributors?select=id,display_name,email,country,is_paid,ref_code&order=id.asc')
+    ]);
+
+    allSentences = Array.isArray(sentences) ? sentences : [];
+    allMembers   = Array.isArray(members)   ? members   : [];
+
+    updateStats();
+    renderSentences();
+    renderMembers();
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+function updateStats() {
+  const pending  = allSentences.filter(s=>s.status==='pending').length;
+  const approved = allSentences.filter(s=>s.status==='approved').length;
+  const rejected = allSentences.filter(s=>s.status==='rejected').length;
+  document.getElementById('s-pending').textContent  = pending;
+  document.getElementById('s-approved').textContent = approved;
+  document.getElementById('s-rejected').textContent = rejected;
+  document.getElementById('s-members').textContent  = allMembers.length;
+  document.getElementById('header-counts').textContent = pending + ' pending review';
+  document.getElementById('tab-pending-count').textContent = pending ? '('+pending+')' : '';
+}
+
+function getMember(id) {
+  return allMembers.find(m => m.id === id) || {};
+}
+
+function renderSentences() {
+  const list = allSentences.filter(s =>
+    currentTab === 'all' ? true : s.status === currentTab
+  );
+  const container = document.getElementById('sentences-list');
+  if(list.length === 0) {
+    container.innerHTML = `<div class="empty"><div class="icon">🎉</div><p>${currentTab==='pending'?'No pending sentences! All reviewed.':'No sentences here.'}</p></div>`;
+    return;
+  }
+  container.innerHTML = list.map(s => {
+    const m = getMember(s.contributor_id);
+    const date = s.created_at ? new Date(s.created_at).toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'}) : '';
+    const statusBadge = `<span class="badge badge-${s.status}">${s.status}</span>`;
+    const founderBadge = !m.is_paid ? `<span class="badge badge-founder">👑 Founder</span>` : `<span class="badge" style="background:#e8f0ff;color:#2255cc;">💳 Paid</span>`;
+
+    const actionBtns = s.status === 'pending'
+      ? `<button class="btn btn-approve" onclick="approve(${s.id})">✅ Approve</button>
+         <button class="btn btn-reject"  onclick="openReject(${s.id})">❌ Reject</button>`
+      : `<button class="btn btn-undo" onclick="undoToPoending(${s.id})">↩️ Reset to Pending</button>`;
+
+    const rejectBox = `
+      <div class="rejection-box" id="reject-box-${s.id}">
+        <label>Select reason for rejection:</label>
+        <div class="reasons">
+          <button class="reason-btn" onclick="selectReason(this,'Religious content')">⛪ Religious</button>
+          <button class="reason-btn" onclick="selectReason(this,'Political content')">🏛 Political</button>
+          <button class="reason-btn" onclick="selectReason(this,'Adult content')">🔞 Adult</button>
+          <button class="reason-btn" onclick="selectReason(this,'Offensive language')">🤬 Offensive</button>
+          <button class="reason-btn" onclick="selectReason(this,'Copied/plagiarised')">📋 Plagiarism</button>
+          <button class="reason-btn" onclick="selectReason(this,'Not in English')">🌐 Not English</button>
+          <button class="reason-btn" onclick="selectReason(this,'Too short or meaningless')">📏 Too short</button>
+        </div>
+        <button class="confirm-reject" onclick="confirmReject(${s.id})">Confirm Rejection</button>
+      </div>`;
+
+    const rejNote = s.rejection_reason
+      ? `<div style="margin-top:8px;font-size:12px;color:#c0392b;">Reason: ${s.rejection_reason}</div>` : '';
+
+    return `
+      <div class="card" id="card-${s.id}">
+        <div class="card-top">
+          <div class="card-sentence">"${s.sentence_text}"</div>
+          <div style="display:flex;gap:6px;flex-shrink:0;">${statusBadge} ${founderBadge}</div>
+        </div>
+        <div class="card-meta">
+          <span>👤 ${m.display_name||'Unknown'}</span>
+          <span>✉️ ${m.email||''}</span>
+          <span>🌍 ${m.country||''}</span>
+          <span>📅 ${date}</span>
+        </div>
+        <div class="actions">${actionBtns}</div>
+        ${rejectBox}
+        ${rejNote}
+      </div>`;
+  }).join('');
+}
+
+function renderMembers() {
+  const container = document.getElementById('members-list');
+  if(allMembers.length === 0) {
+    container.innerHTML = `<div class="empty"><div class="icon">👥</div><p>No members yet.</p></div>`;
+    return;
+  }
+  container.innerHTML = `
+    <table class="members-table">
+      <thead><tr>
+        <th>#</th><th>Name</th><th>Email</th><th>Country</th><th>Type</th><th>Ref Code</th>
+      </tr></thead>
+      <tbody>
+        ${allMembers.map((m,i) => `
+          <tr>
+            <td>${i+1}</td>
+            <td><strong>${m.display_name||''}</strong></td>
+            <td>${m.email||''}</td>
+            <td>${m.country||''}</td>
+            <td>${m.is_paid ? '<span class="badge" style="background:#e8f0ff;color:#2255cc;">💳 Paid</span>' : '<span class="badge badge-founder">👑 Founder</span>'}</td>
+            <td><code style="font-size:12px;">${m.ref_code||''}</code></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+}
+
+async function approve(id) {
+  const r = await dbPatch('sentences?id=eq.'+id, { status: 'approved', rejection_reason: null });
+  if(r.ok) {
+    const s = allSentences.find(x=>x.id===id);
+    if(s) s.status = 'approved';
+    updateStats();
+    renderSentences();
+    toast('✅ Sentence approved!', 'success');
+  } else {
+    toast('Error approving', 'error');
+  }
+}
+
+function openReject(id) {
+  // Close any open reject box first
+  if(openRejectId && openRejectId !== id) {
+    const prev = document.getElementById('reject-box-'+openRejectId);
+    if(prev) prev.classList.remove('open');
+  }
+  openRejectId = id;
+  const box = document.getElementById('reject-box-'+id);
+  if(box) box.classList.toggle('open');
+}
+
+function selectReason(btn, reason) {
+  btn.closest('.reasons').querySelectorAll('.reason-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  btn.dataset.reason = reason;
+}
+
+async function confirmReject(id) {
+  const box = document.getElementById('reject-box-'+id);
+  const selected = box.querySelector('.reason-btn.selected');
+  const reason = selected ? selected.textContent.trim() : 'Rejected by admin';
+  const r = await dbPatch('sentences?id=eq.'+id, { status: 'rejected', rejection_reason: reason });
+  if(r.ok) {
+    const s = allSentences.find(x=>x.id===id);
+    if(s){ s.status = 'rejected'; s.rejection_reason = reason; }
+    updateStats();
+    renderSentences();
+    toast('❌ Sentence rejected.', 'error');
+  } else {
+    toast('Error rejecting', 'error');
+  }
+}
+
+async function undoToPoending(id) {
+  const r = await dbPatch('sentences?id=eq.'+id, { status: 'pending', rejection_reason: null });
+  if(r.ok) {
+    const s = allSentences.find(x=>x.id===id);
+    if(s){ s.status = 'pending'; s.rejection_reason = null; }
+    updateStats();
+    renderSentences();
+    toast('↩️ Reset to pending.', 'success');
+  }
+}
+
+function setTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSentences();
+}
+
+function showPage(page, btn) {
+  document.getElementById('page-sentences').style.display = page==='sentences' ? '' : 'none';
+  document.getElementById('page-members').style.display   = page==='members'   ? '' : 'none';
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function toast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(()=>t.classList.remove('show'), 3500);
+}
+
+loadAll();
+</script>
+</body>
+</html>
