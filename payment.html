@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Payment — One Million Sentences</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <!-- Stripe JS -->
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:        #0f0e0c;
+      --paper:      #faf8f3;
+      --cream:      #f2ede3;
+      --gold:       #c9a84c;
+      --gold-light: #f0d98a;
+      --blue:       #1a3a5c;
+      --blue-mid:   #2d6a9f;
+      --muted:      #7a7060;
+      --border:     #ddd8cc;
+      --white:      #ffffff;
+      --success:    #2d6a4f;
+      --success-bg: #eaf5ee;
+      --danger:     #8b2020;
+      --danger-bg:  #fdf0f0;
+      --warning:    #7a5a10;
+      --warning-bg: #fdf6e3;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: rgba(250,248,243,0.97);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .nav-logo span { color: var(--gold); }
+
+    .nav-secure {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* ── LAYOUT ── */
+    .page-wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 48px 40px 80px;
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 48px;
+      align-items: start;
+    }
+
+    /* ── ORDER SUMMARY (LEFT) ── */
+    .summary-panel { position: sticky; top: 84px; }
+
+    .summary-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 14px;
+    }
+
+    .summary-panel h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+
+    /* SENTENCE PREVIEW */
+    .sentence-preview {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 24px;
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sentence-preview::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    }
+
+    .sp-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .sp-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+
+    .sp-sentence {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 17px;
+      font-style: italic;
+      color: var(--ink);
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    .sp-email {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* PRICE BREAKDOWN */
+    .price-breakdown {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 18px;
+    }
+
+    .pb-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .pb-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+
+    .pb-row:last-child { border-bottom: none; }
+    .pb-row .pb-lbl { color: var(--muted); }
+    .pb-row .pb-val { font-weight: 500; }
+    .pb-row.total { font-weight: 700; font-size: 16px; color: var(--ink); }
+    .pb-row .free  { color: var(--success); font-weight: 600; }
+    .pb-row .strike{ text-decoration: line-through; color: var(--muted); font-weight: 400; }
+
+    /* WHAT YOU GET */
+    .what-you-get {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 24px;
+    }
+
+    .wyg-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .wyg-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--ink);
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
+    .wyg-item:last-child { margin-bottom: 0; }
+
+    .wyg-icon {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--success-bg);
+      color: var(--success);
+      font-size: 11px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── PAYMENT CARD (RIGHT) ── */
+    .payment-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 28px;
+      box-shadow: 0 4px 40px rgba(15,14,12,0.06);
+    }
+
+    .payment-card h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .payment-card .pc-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    /* ── FREE FOUNDER FLOW ── */
+    .founder-flow {
+      display: none;
+    }
+
+    .founder-flow.show { display: block; }
+
+    .founder-box {
+      background: linear-gradient(135deg, var(--ink) 0%, #1a2a3a 100%);
+      border-radius: 14px;
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .founder-box .fb-crown { font-size: 32px; margin-bottom: 10px; }
+
+    .founder-box h4 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+
+    .founder-box p {
+      font-size: 13px;
+      color: rgba(250,248,243,0.6);
+      line-height: 1.6;
+    }
+
+    .founder-box .f-badge {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--ink);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 4px 14px;
+      border-radius: 100px;
+      margin: 10px 0 0;
+    }
+
+    /* ── PAID FLOW ── */
+    .paid-flow { display: block; }
+    .paid-flow.hide { display: none; }
+
+    /* FIELD */
+    .field { margin-bottom: 16px; }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: 'Outfit', sans-serif;
+      background: var(--white);
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+    }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* STRIPE CARD ELEMENT */
+    .stripe-wrap {
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      background: var(--white);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      margin-bottom: 16px;
+    }
+
+    .stripe-wrap.focused {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+    }
+
+    .stripe-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+
+    #card-element { min-height: 24px; }
+
+    #card-errors {
+      font-size: 12px;
+      color: var(--danger);
+      margin-top: 8px;
+      display: none;
+      align-items: center;
+      gap: 5px;
+    }
+
+    #card-errors.show { display: flex; }
+
+    /* DIVIDER */
+    .or-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 18px 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .or-divider::before,
+    .or-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* PAYPAL BTN PLACEHOLDER */
+    .paypal-btn {
+      width: 100%;
+      background: #FFC439;
+      color: #003087;
+      border: none;
+      padding: 13px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: opacity 0.2s;
+      margin-bottom: 16px;
+    }
+
+    .paypal-btn:hover { opacity: 0.9; }
+
+    /* SUBMIT BTN */
+    .btn-pay {
+      width: 100%;
+      background: var(--ink);
+      color: var(--paper);
+      border: none;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .btn-pay:hover:not(:disabled) { background: var(--blue); transform: translateY(-1px); }
+    .btn-pay:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .btn-free {
+      width: 100%;
+      background: var(--success);
+      color: var(--white);
+      border: none;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      margin-bottom: 12px;
+    }
+
+    .btn-free:hover { background: #235a40; transform: translateY(-1px); }
+
+    /* SPINNER */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(250,248,243,0.3);
+      border-top-color: var(--paper);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* SECURITY BADGES */
+    .security-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    .sec-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* REFUND NOTE */
+    .refund-note {
+      background: var(--warning-bg);
+      border: 1px solid #e8d090;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 12px;
+      color: var(--warning);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .refund-note strong { color: #5a3c08; }
+
+    /* ── SUCCESS SCREEN ── */
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .success-screen.show { display: block; }
+
+    .success-circle {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: var(--success-bg);
+      color: var(--success);
+      font-size: 30px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      animation: popIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+
+    .success-screen h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .success-screen > p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 6px;
+    }
+
+    .prov-num {
+      display: inline-block;
+      background: var(--ink);
+      color: var(--gold);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 700;
+      padding: 8px 30px;
+      border-radius: 100px;
+      margin: 14px 0;
+    }
+
+    .review-badge {
+      background: var(--warning-bg);
+      border: 1px solid #e8d090;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 12px;
+      color: var(--warning);
+      line-height: 1.65;
+      text-align: left;
+      margin: 16px 0;
+    }
+
+    .ref-link-box {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      text-align: left;
+    }
+
+    .ref-link-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .ref-link-row {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ref-link-text {
+      font-size: 12px;
+      color: var(--ink);
+      flex: 1;
+      word-break: break-all;
+    }
+
+    .btn-copy {
+      background: var(--ink);
+      color: var(--paper);
+      border: none;
+      padding: 7px 14px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+
+    .btn-copy:hover { background: var(--blue); }
+
+    .ref-link-hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 7px;
+      line-height: 1.5;
+    }
+
+    .btn-dashboard {
+      display: block;
+      width: 100%;
+      background: var(--ink);
+      color: var(--paper);
+      border: none;
+      padding: 13px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      margin-top: 18px;
+      transition: background 0.2s;
+    }
+
+    .btn-dashboard:hover { background: var(--blue); }
+
+    /* ── STEP BREADCRUMB ── */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .breadcrumb span { color: var(--ink); font-weight: 500; }
+    .breadcrumb .sep { color: var(--border); }
+
+    /* RESPONSIVE */
+    @media (max-width: 860px) {
+      .page-wrap { grid-template-columns: 1fr; }
+      .summary-panel { position: static; }
+    }
+
+    @media (max-width: 540px) {
+      nav { padding: 0 20px; }
+      .page-wrap { padding: 28px 20px 60px; }
+      .payment-card { padding: 24px 18px; }
+      .two-col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="nav-logo">One Million<span>.</span></a>
+    <div class="nav-secure">🔒 Secure checkout</div>
+  </nav>
+
+  <div class="page-wrap">
+
+    <!-- ══════════════════════════════════
+         LEFT — ORDER SUMMARY
+    ══════════════════════════════════ -->
+    <div class="summary-panel">
+      <div class="breadcrumb">
+        <a href="index.html" style="color:var(--muted);text-decoration:none;">Home</a>
+        <span class="sep">›</span>
+        <a href="register.html" style="color:var(--muted);text-decoration:none;">Registration</a>
+        <span class="sep">›</span>
+        <span>Payment</span>
+      </div>
+
+      <div class="summary-tag">Order summary</div>
+      <h2>Almost there.<br>Secure your spot.</h2>
+
+      <!-- Sentence preview -->
+      <div class="sentence-preview">
+        <div class="sp-label">Your submission</div>
+        <div class="sp-name" id="sum-name">—</div>
+        <div class="sp-sentence" id="sum-sentence">"Your sentence will appear here"</div>
+        <div class="sp-email">
+          <span>📧</span>
+          <span id="sum-email">—</span>
+        </div>
+      </div>
+
+      <!-- Price breakdown -->
+      <div class="price-breakdown" id="price-breakdown">
+        <div class="pb-title">Price breakdown</div>
+        <div class="pb-row">
+          <span class="pb-lbl">Contribution fee</span>
+          <span class="pb-val" id="pb-fee">$5.00</span>
+        </div>
+        <div class="pb-row">
+          <span class="pb-lbl">Digital book (on completion)</span>
+          <span class="pb-val free">FREE</span>
+        </div>
+        <div class="pb-row">
+          <span class="pb-lbl">Book retail value</span>
+          <span class="pb-val strike">$19.00</span>
+        </div>
+        <div class="pb-row total">
+          <span>Total due today</span>
+          <span id="pb-total">$5.00</span>
+        </div>
+      </div>
+
+      <!-- What you get -->
+      <div class="what-you-get">
+        <div class="wyg-title">What you receive</div>
+        <div class="wyg-item">
+          <div class="wyg-icon">✓</div>
+          <span>Your name &amp; sentence number permanently in the book</span>
+        </div>
+        <div class="wyg-item">
+          <div class="wyg-icon">✓</div>
+          <span>Free digital copy of the complete book (PDF) delivered to your email</span>
+        </div>
+        <div class="wyg-item">
+          <div class="wyg-icon">✓</div>
+          <span>Digital participation certificate with your name</span>
+        </div>
+        <div class="wyg-item">
+          <div class="wyg-icon">✓</div>
+          <span>Personal referral link — every 5 referrals earns a free extra sentence</span>
+        </div>
+        <div class="wyg-item">
+          <div class="wyg-icon">✓</div>
+          <span>Full refund if your sentence is rejected — no questions asked</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         RIGHT — PAYMENT CARD
+    ══════════════════════════════════ -->
+    <div class="payment-card">
+
+      <!-- SUCCESS SCREEN (shown after payment) -->
+      <div class="success-screen" id="success-screen">
+        <div class="success-circle">✓</div>
+        <h3 id="sc-title">Registration complete!</h3>
+        <p id="sc-msg">Your sentence has been received and is now pending manual review.</p>
+        <div class="prov-num" id="sc-num">#PENDING</div>
+        <p style="font-size:12px;color:var(--muted);">Provisional number — becomes permanent once approved.</p>
+
+        <div class="review-badge">
+          ⏳ <strong>Next step:</strong> Our editorial team will personally review your sentence within <strong>48 hours</strong>. You will receive an email at <strong id="sc-email">—</strong> with the decision.
+          <br><br>
+          If <strong>approved</strong> — your spot is locked in permanently.<br>
+          If <strong>rejected</strong> — your full payment is refunded within 5–10 business days.
+        </div>
+
+        <div class="ref-link-box">
+          <div class="ref-link-title">Your referral link</div>
+          <div class="ref-link-row">
+            <span class="ref-link-text" id="sc-ref">https://onemillionsentences.com/join?ref=XXXXXX</span>
+            <button class="btn-copy" onclick="copyRef(this)">Copy</button>
+          </div>
+          <p class="ref-link-hint">Every 5 paying members who join through your link = <strong>1 free extra sentence</strong> in the book. No limit.</p>
+        </div>
+
+        <a href="dashboard.html" class="btn-dashboard">Go to My Dashboard →</a>
+      </div>
+
+      <!-- PAYMENT FORM -->
+      <div id="payment-form-wrap">
+        <h3 id="pay-title">Complete your payment</h3>
+        <p class="pc-sub" id="pay-sub">Your spot is reserved. Complete payment to confirm your sentence.</p>
+
+        <!-- ── FOUNDER FREE FLOW ── -->
+        <div class="founder-flow" id="founder-flow">
+          <div class="founder-box">
+            <div class="fb-crown">👑</div>
+            <h4>You're a Founding Member!</h4>
+            <p>You are among the first 100 contributors. Your spot is completely <strong style="color:var(--gold-light);">free</strong> — no payment required.</p>
+            <span class="f-badge">FOUNDER</span>
+          </div>
+
+          <div style="background:var(--success-bg);border:1px solid #b7dfc5;border-radius:10px;padding:14px 16px;font-size:13px;color:var(--success);margin-bottom:18px;line-height:1.6;">
+            ✓ Your sentence will be submitted immediately for manual review. You will receive a confirmation email within 48 hours.
+          </div>
+
+          <button class="btn-free" onclick="completeFree()">
+            Complete Free Registration →
+          </button>
+
+          <div class="security-row">
+            <div class="sec-badge">🔒 No payment needed</div>
+            <div class="sec-badge">✓ Founder badge in book</div>
+          </div>
+        </div>
+
+        <!-- ── PAID FLOW ── -->
+        <div class="paid-flow" id="paid-flow">
+
+          <div class="refund-note">
+            🔄 <strong>100% refund guarantee:</strong> If your sentence is rejected after manual review, your full $5 is returned to your original payment method within 5–10 business days automatically.
+          </div>
+
+          <!-- Cardholder name -->
+          <div class="field">
+            <label>Cardholder name</label>
+            <input type="text" id="cardholder-name" placeholder="Name as it appears on your card"/>
+          </div>
+
+          <!-- Stripe card element -->
+          <div class="stripe-label">Card details</div>
+          <div class="stripe-wrap" id="stripe-wrap">
+            <div id="card-element">
+              <!-- Stripe injects card fields here -->
+            </div>
+          </div>
+          <div id="card-errors">⚠ <span id="card-error-msg">Invalid card details</span></div>
+
+          <!-- Pay button -->
+          <button class="btn-pay" id="btn-pay" onclick="handlePayment()">
+            <span id="pay-btn-txt">Pay $5.00 Securely</span>
+            <div class="spinner" id="pay-spinner"></div>
+          </button>
+
+          <div class="or-divider">or pay with</div>
+
+          <!-- PayPal placeholder -->
+          <button class="paypal-btn" onclick="handlePayPal()">
+            <svg width="80" height="20" viewBox="0 0 80 20" fill="none">
+              <text x="0" y="16" font-family="Arial" font-size="14" font-weight="bold" fill="#003087">Pay</text>
+              <text x="26" y="16" font-family="Arial" font-size="14" font-weight="bold" fill="#009cde">Pal</text>
+            </svg>
+          </button>
+
+          <!-- Security badges -->
+          <div class="security-row">
+            <div class="sec-badge">🔒 SSL Encrypted</div>
+            <div class="sec-badge">💳 Powered by Stripe</div>
+            <div class="sec-badge">🛡 PCI Compliant</div>
+          </div>
+
+          <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:12px;line-height:1.6;">
+            By completing payment you confirm your agreement to our
+            <a href="#" style="color:var(--blue-mid);">Terms of Service</a> and
+            <a href="#" style="color:var(--blue-mid);">Refund Policy</a>.
+            We never store your card details.
+          </p>
+        </div>
+
+      </div><!-- /payment-form-wrap -->
+    </div><!-- /payment-card -->
+
+  </div><!-- /page-wrap -->
+
+  <script>
+    /* ═══════════════════════════════════════════════════
+       CONFIG
+       ─────────────────────────────────────────────────
+       Replace STRIPE_PUBLIC_KEY with your real key from
+       https://dashboard.stripe.com/apikeys
+    ═══════════════════════════════════════════════════ */
+    const STRIPE_PUBLIC_KEY = 'pk_test_REPLACE_WITH_YOUR_STRIPE_KEY';
+    const FOUNDER_LIMIT     = 100;
+    const FOUNDERS_TAKEN    = 0;   // ← update from DB
+    const IS_FOUNDER        = FOUNDERS_TAKEN < FOUNDER_LIMIT;
+
+    /* ═══════════════════════════════════════════════════
+       LOAD SUBMISSION DATA FROM PREVIOUS STEP
+       In a real system this comes from your backend/session.
+       For demo we read from localStorage if available.
+    ═══════════════════════════════════════════════════ */
+    const submission = JSON.parse(localStorage.getItem('oms_submission') || 'null') || {
+      displayName: 'Your Name',
+      email:       'your@email.com',
+      sentence:    'Your sentence will appear here after registration.'
+    };
+
+    document.getElementById('sum-name').textContent     = submission.displayName;
+    document.getElementById('sum-sentence').textContent = '"' + submission.sentence + '"';
+    document.getElementById('sum-email').textContent    = submission.email;
+
+    /* ═══════════════════════════════════════════════════
+       FOUNDER vs PAID FLOW
+    ═══════════════════════════════════════════════════ */
+    if (IS_FOUNDER) {
+      document.getElementById('founder-flow').classList.add('show');
+      document.getElementById('paid-flow').classList.add('hide');
+      document.getElementById('pay-title').textContent = 'You have a free Founder spot!';
+      document.getElementById('pay-sub').textContent   = 'No payment required. Confirm your submission below.';
+      // Update price breakdown
+      document.getElementById('pb-fee').textContent   = 'FREE';
+      document.getElementById('pb-total').textContent = '$0.00';
+      document.getElementById('pb-fee').style.color   = 'var(--success)';
+      document.getElementById('pb-total').style.color = 'var(--success)';
+    }
+
+    /* ═══════════════════════════════════════════════════
+       STRIPE SETUP
+       Only initialise if paid flow is shown
+    ═══════════════════════════════════════════════════ */
+    let stripe, cardElement;
+
+    if (!IS_FOUNDER) {
+      try {
+        stripe = Stripe(STRIPE_PUBLIC_KEY);
+        const elements = stripe.elements({
+          fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Outfit:wght@400&display=swap' }]
+        });
+
+        cardElement = elements.create('card', {
+          style: {
+            base: {
+              fontFamily: 'Outfit, sans-serif',
+              fontSize: '14px',
+              color: '#0f0e0c',
+              '::placeholder': { color: '#b0a898' }
+            },
+            invalid: { color: '#8b2020' }
+          }
+        });
+
+        cardElement.mount('#card-element');
+
+        cardElement.on('focus', () => {
+          document.getElementById('stripe-wrap').classList.add('focused');
+        });
+
+        cardElement.on('blur', () => {
+          document.getElementById('stripe-wrap').classList.remove('focused');
+        });
+
+        cardElement.on('change', (e) => {
+          const errEl = document.getElementById('card-errors');
+          const msgEl = document.getElementById('card-error-msg');
+          if (e.error) {
+            msgEl.textContent = e.error.message;
+            errEl.classList.add('show');
+          } else {
+            errEl.classList.remove('show');
+          }
+        });
+
+      } catch (err) {
+        // Stripe key not set — show demo mode notice
+        document.getElementById('card-element').innerHTML =
+          '<p style="font-size:12px;color:var(--muted);padding:4px 0;">⚠️ Demo mode — add your Stripe key to enable real payments.</p>';
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       HANDLE STRIPE PAYMENT
+    ═══════════════════════════════════════════════════ */
+    async function handlePayment() {
+      const btn     = document.getElementById('btn-pay');
+      const txt     = document.getElementById('pay-btn-txt');
+      const spinner = document.getElementById('pay-spinner');
+
+      btn.disabled   = true;
+      txt.textContent = 'Processing…';
+      spinner.style.display = 'block';
+
+      try {
+        if (!stripe || !cardElement) {
+          // Demo mode — simulate success after 2s
+          setTimeout(() => showSuccess(false), 2000);
+          return;
+        }
+
+        const cardholderName = document.getElementById('cardholder-name').value.trim();
+
+        /* ── STEP 1: Create PaymentIntent on your server ──
+           Your backend should POST to /api/create-payment-intent
+           and return { clientSecret: '...' }
+           Replace this fetch with your real backend call.    */
+        const res = await fetch('/api/create-payment-intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount:   500, // $5.00 in cents
+            currency: 'usd',
+            email:    submission.email,
+            name:     submission.displayName
+          })
+        });
+
+        const { clientSecret } = await res.json();
+
+        /* ── STEP 2: Confirm card payment ── */
+        const result = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: cardElement,
+            billing_details: { name: cardholderName, email: submission.email }
+          }
+        });
+
+        if (result.error) {
+          document.getElementById('card-error-msg').textContent = result.error.message;
+          document.getElementById('card-errors').classList.add('show');
+          btn.disabled = false;
+          txt.textContent = 'Pay $5.00 Securely';
+          spinner.style.display = 'none';
+        } else if (result.paymentIntent.status === 'succeeded') {
+          showSuccess(false);
+        }
+
+      } catch (err) {
+        // Network error or backend not connected — demo mode
+        setTimeout(() => showSuccess(false), 2000);
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       HANDLE PAYPAL (placeholder)
+    ═══════════════════════════════════════════════════ */
+    function handlePayPal() {
+      alert('PayPal integration coming soon. Please use card payment for now.');
+    }
+
+    /* ═══════════════════════════════════════════════════
+       HANDLE FREE FOUNDER
+    ═══════════════════════════════════════════════════ */
+    function completeFree() {
+      const btn = document.querySelector('.btn-free');
+      btn.disabled = true;
+      btn.textContent = 'Submitting…';
+      setTimeout(() => showSuccess(true), 1500);
+    }
+
+    /* ═══════════════════════════════════════════════════
+       SHOW SUCCESS SCREEN
+    ═══════════════════════════════════════════════════ */
+    function showSuccess(isFree) {
+      const refCode = Math.random().toString(36).substring(2,8).toUpperCase();
+      const provNum = 'OMS-' + String(Math.floor(Math.random()*900000)+100000);
+
+      document.getElementById('sc-num').textContent   = provNum;
+      document.getElementById('sc-email').textContent = submission.email;
+      document.getElementById('sc-ref').textContent   =
+        'https://onemillionsentences.com/join?ref=' + refCode;
+
+      if (isFree) {
+        document.getElementById('sc-title').textContent = 'Welcome, Founding Member! 👑';
+        document.getElementById('sc-msg').textContent   =
+          'Your free Founder submission has been received and is pending manual review.';
+      }
+
+      document.getElementById('payment-form-wrap').style.display = 'none';
+      document.getElementById('success-screen').classList.add('show');
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ═══════════════════════════════════════════════════
+       COPY REFERRAL LINK
+    ═══════════════════════════════════════════════════ */
+    function copyRef(btn) {
+      navigator.clipboard.writeText(
+        document.getElementById('sc-ref').textContent
+      ).then(() => {
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 2200);
+      });
+    }
+  </script>
+</body>
+</html>

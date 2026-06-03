@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Email System — One Million Sentences</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ink: #0f0e0c; --paper: #faf8f3; --cream: #f2ede3;
+      --gold: #c9a84c; --gold-light: #f0d98a; --blue: #1a3a5c;
+      --blue-mid: #2d6a9f; --muted: #7a7060; --border: #ddd8cc;
+      --white: #ffffff; --success: #2d6a4f; --success-bg: #eaf5ee;
+      --danger: #8b2020; --danger-bg: #fdf0f0;
+      --warning: #7a5a10; --warning-bg: #fdf6e3;
+    }
+    body { font-family: 'Outfit', sans-serif; background: #f0ece4; color: var(--ink); display: flex; min-height: 100vh; }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 240px; background: var(--ink); min-height: 100vh;
+      position: fixed; top: 0; left: 0; bottom: 0;
+      display: flex; flex-direction: column; z-index: 50; flex-shrink: 0;
+    }
+    .sb-logo { padding: 24px 20px 20px; border-bottom: 1px solid rgba(250,248,243,0.08); }
+    .sb-logo a { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 700; color: var(--paper); text-decoration: none; }
+    .sb-logo a span { color: var(--gold); }
+    .sb-logo .tag { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(250,248,243,0.3); margin-top: 4px; }
+    .sb-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 3px; }
+    .sb-section { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: rgba(250,248,243,0.25); padding: 10px 8px 5px; margin-top: 6px; }
+    .sb-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; font-size: 13px; font-weight: 500; color: rgba(250,248,243,0.6); cursor: pointer; transition: all 0.2s; text-decoration: none; }
+    .sb-item:hover { background: rgba(250,248,243,0.07); color: var(--paper); }
+    .sb-item.active { background: rgba(201,168,76,0.15); color: var(--gold); }
+    .sb-icon { font-size: 16px; flex-shrink: 0; }
+
+    /* MAIN */
+    .main-area { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+    .topbar { background: var(--white); border-bottom: 1px solid var(--border); padding: 0 32px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 40; }
+    .topbar-title { font-size: 16px; font-weight: 600; }
+    .content { padding: 32px; flex: 1; }
+
+    /* INTRO */
+    .intro-card {
+      background: var(--ink); border-radius: 16px; padding: 28px 32px;
+      margin-bottom: 28px; display: flex; align-items: center; gap: 32px;
+      position: relative; overflow: hidden;
+    }
+    .intro-card::before {
+      content: ''; position: absolute; top: -60px; right: -60px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%);
+    }
+    .intro-card h2 { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; color: var(--paper); margin-bottom: 8px; line-height: 1.2; }
+    .intro-card h2 em { font-style: italic; color: var(--gold); }
+    .intro-card p { font-size: 13px; color: rgba(250,248,243,0.5); line-height: 1.7; }
+    .intro-stats { display: flex; gap: 24px; flex-shrink: 0; }
+    .is-item { text-align: center; }
+    .is-num { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 700; color: var(--gold); display: block; line-height: 1; }
+    .is-lbl { font-size: 11px; color: rgba(250,248,243,0.35); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+    /* EMAIL LIST */
+    .emails-grid { display: flex; flex-direction: column; gap: 14px; }
+
+    .email-row {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+    .email-row:hover { box-shadow: 0 4px 20px rgba(15,14,12,0.07); }
+
+    .email-header {
+      display: flex; align-items: center; gap: 16px;
+      padding: 18px 22px; cursor: pointer;
+      user-select: none;
+    }
+
+    .email-icon {
+      width: 42px; height: 42px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+
+    .ei-welcome  { background: #e8f0f8; }
+    .ei-payment  { background: var(--success-bg); }
+    .ei-pending  { background: var(--warning-bg); }
+    .ei-approved { background: var(--success-bg); }
+    .ei-rejected { background: var(--danger-bg); }
+    .ei-referral { background: #f5efd6; }
+    .ei-book     { background: #f0e8f8; }
+
+    .email-meta { flex: 1; }
+    .email-trigger { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 3px; }
+    .email-name { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+    .email-desc { font-size: 12px; color: var(--muted); }
+
+    .email-badge {
+      font-size: 11px; font-weight: 600; padding: 4px 12px;
+      border-radius: 100px; flex-shrink: 0;
+    }
+    .eb-auto { background: var(--success-bg); color: var(--success); }
+    .eb-manual { background: var(--warning-bg); color: var(--warning); }
+
+    .email-toggle {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 1px solid var(--border); background: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: var(--muted); transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .email-row.open .email-toggle { background: var(--ink); border-color: var(--ink); color: var(--paper); transform: rotate(45deg); }
+
+    .email-body { display: none; border-top: 1px solid var(--border); padding: 0 22px 22px; }
+    .email-row.open .email-body { display: block; }
+
+    /* EMAIL PREVIEW */
+    .preview-wrap {
+      margin-top: 20px; border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+    }
+
+    .preview-topbar {
+      background: var(--cream); padding: 12px 16px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px; color: var(--muted);
+    }
+
+    .preview-topbar .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    .preview-content { background: var(--white); padding: 0; }
+
+    /* THE ACTUAL EMAIL TEMPLATES */
+    .email-tpl { font-family: 'Outfit', sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; }
+
+    .tpl-header {
+      background: var(--ink); border-radius: 12px 12px 0 0;
+      padding: 28px 32px; text-align: center; margin: -32px -24px 28px;
+    }
+
+    .tpl-logo { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; color: var(--paper); }
+    .tpl-logo span { color: var(--gold); }
+
+    .tpl-hero-icon { font-size: 42px; margin: 16px 0 12px; display: block; }
+
+    .tpl-title { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; color: var(--paper); margin-bottom: 6px; line-height: 1.2; }
+    .tpl-sub { font-size: 13px; color: rgba(250,248,243,0.55); line-height: 1.6; }
+
+    .tpl-body { font-size: 14px; color: var(--ink); line-height: 1.8; }
+    .tpl-body p { margin-bottom: 14px; }
+    .tpl-body strong { font-weight: 600; }
+
+    .tpl-box {
+      background: var(--cream); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 18px; margin: 18px 0;
+    }
+
+    .tpl-box .tb-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 8px; }
+    .tpl-box .tb-val { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-style: italic; color: var(--ink); line-height: 1.55; }
+    .tpl-box .tb-plain { font-size: 13px; color: var(--ink); font-weight: 500; }
+
+    .tpl-btn {
+      display: block; background: var(--ink); color: var(--paper);
+      text-align: center; padding: 14px 28px; border-radius: 9px;
+      font-size: 14px; font-weight: 600; text-decoration: none;
+      margin: 20px 0; font-family: 'Outfit', sans-serif;
+    }
+
+    .tpl-divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+    .tpl-footer {
+      text-align: center; font-size: 11px; color: var(--muted);
+      line-height: 1.7; margin-top: 24px; padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .tpl-ref-box {
+      background: var(--ink); border-radius: 10px; padding: 16px 18px; margin: 18px 0;
+    }
+    .tpl-ref-box .rb-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(250,248,243,0.4); margin-bottom: 8px; }
+    .tpl-ref-box .rb-link { font-size: 12px; color: var(--gold); word-break: break-all; }
+
+    .tpl-success { color: var(--success); font-weight: 600; }
+    .tpl-danger  { color: var(--danger);  font-weight: 600; }
+    .tpl-gold    { color: var(--gold);    font-weight: 600; }
+
+    /* SETUP GUIDE */
+    .setup-section {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px; margin-top: 28px;
+    }
+    .setup-section h3 { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .setup-section > p { font-size: 13px; color: var(--muted); margin-bottom: 22px; line-height: 1.6; }
+
+    .setup-steps { display: flex; flex-direction: column; gap: 14px; }
+
+    .setup-step {
+      display: flex; gap: 16px; align-items: flex-start;
+      background: var(--cream); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 18px;
+    }
+
+    .ss-num {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--ink); color: var(--gold);
+      font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .ss-content h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .ss-content p  { font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .ss-content code {
+      background: var(--ink); color: var(--gold);
+      padding: 2px 8px; border-radius: 5px; font-size: 12px;
+      font-family: monospace; display: inline-block; margin-top: 5px;
+    }
+
+    .service-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .chip {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 14px; font-size: 12px;
+      font-weight: 500; color: var(--ink); display: flex; align-items: center; gap: 6px;
+    }
+    .chip.recommended { border-color: var(--gold); color: var(--gold); }
+
+    @media (max-width: 900px) {
+      .sidebar { width: 56px; }
+      .sb-logo .tag, .sb-section, .sb-item span:not(.sb-icon) { display: none; }
+      .sb-item { justify-content: center; padding: 12px; }
+      .main-area { margin-left: 56px; }
+      .content { padding: 20px; }
+      .intro-card { flex-direction: column; }
+      .intro-stats { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-logo">
+    <a href="index.html">One Million<span>.</span></a>
+    <div class="tag">Email System</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section">Admin</div>
+    <a class="sb-item" href="admin.html"><span class="sb-icon">📋</span><span>Review Sentences</span></a>
+    <a class="sb-item" href="admin.html"><span class="sb-icon">📊</span><span>Overview</span></a>
+    <div class="sb-section">Pages</div>
+    <a class="sb-item" href="index.html" target="_blank"><span class="sb-icon">🌐</span><span>Website</span></a>
+    <a class="sb-item active" href="#"><span class="sb-icon">✉️</span><span>Email System</span></a>
+  </nav>
+</div>
+
+<!-- MAIN -->
+<div class="main-area">
+  <div class="topbar">
+    <div class="topbar-title">Email System — All Templates</div>
+    <div style="font-size:13px;color:var(--muted);">7 email templates • Fully designed</div>
+  </div>
+
+  <div class="content">
+
+    <!-- INTRO -->
+    <div class="intro-card">
+      <div style="flex:1;">
+        <h2>Your complete<br><em>email system.</em></h2>
+        <p>7 professional email templates, each triggered at the right moment. Every email is designed, written, and ready to connect to your sending service.</p>
+      </div>
+      <div class="intro-stats">
+        <div class="is-item"><span class="is-num">7</span><div class="is-lbl">Templates</div></div>
+        <div class="is-item"><span class="is-num">6</span><div class="is-lbl">Automatic</div></div>
+        <div class="is-item"><span class="is-num">1</span><div class="is-lbl">Manual</div></div>
+      </div>
+    </div>
+
+    <!-- EMAIL LIST -->
+    <div class="emails-grid">
+
+      <!-- ══ EMAIL 1: WELCOME ══ -->
+      <div class="email-row" id="e1">
+        <div class="email-header" onclick="toggleEmail('e1')">
+          <div class="email-icon ei-welcome">👋</div>
+          <div class="email-meta">
+            <div class="email-trigger">Trigger: immediately after registration</div>
+            <div class="email-name">Welcome & Registration Confirmation</div>
+            <div class="email-desc">Sent the moment someone submits their sentence and completes registration</div>
+          </div>
+          <span class="email-badge eb-auto">⚡ Automatic</span>
+          <div class="email-toggle">+</div>
+        </div>
+        <div class="email-body">
+          <div class="preview-wrap">
+            <div class="preview-topbar">
+              <div class="dot" style="background:#ff5f57;"></div>
+              <div class="dot" style="background:#febc2e;"></div>
+              <div class="dot" style="background:#28c840;"></div>
+              <span style="margin-left:8px;"><strong>From:</strong> One Million Sentences &lt;hello@onemillionsentences.com&gt;</span>
+              <span style="margin-left:16px;"><strong>Subject:</strong> You're in — sentence received! 📖</span>
+            </div>
+            <div class="preview-content">
+              <div class="email-tpl">
+                <div class="tpl-header">
+                  <div class="tpl-logo">One Million<span>.</span></div>
+                  <span class="tpl-hero-icon">📖</span>
+                  <div class="tpl-title">You're officially part of the book.</div>
+                  <div class="tpl-sub">Your sentence has been received and is pending review.</div>
+                </div>
+                <div class="tpl-body">
+                  <p>Hi <strong>[First Name]</strong>,</p>
+                  <p>Thank you for joining the One Million Sentences project. Your sentence has been successfully submitted and is now in our review queue.</p>
+                  <div class="tpl-box">
+                    <div class="tb-label">Your submitted sentence</div>
+                    <div class="tb-val">"[Sentence Text]"</div>
+                  </div>
+                  <div class="tpl-box">
+                    <div class="tb-label">Your details</div>
+                    <div class="tb-plain">Name in book: <strong>[Display Name]</strong><br/>Provisional number: <strong>[#000000]</strong><br/>Payment: <strong>$5.00 paid</strong></div>
+                  </div>
+                  <p>Our editorial team will personally review your sentence within <strong>7 days</strong>. You will receive another email with the decision. If approved, your spot is locked in permanently.</p>
+                  <a href="#" class="tpl-btn">Go to My Dashboard →</a>
+                  <div class="tpl-divider"></div>
+                  <p style="font-size:13px;color:var(--muted);">💡 <strong>Earn free sentences:</strong> Share your referral link. Every 5 paying members who join through it earns you a free extra sentence in the book.</p>
+                  <div class="tpl-ref-box">
+                    <div class="rb-label">Your personal referral link</div>
+                    <div class="rb-link">https://onemillionsentences.com/join?ref=[REF_CODE]</div>
+                  </div>
+                </div>
+                <div class="tpl-footer">
+                  One Million Sentences • <a href="#" style="color:var(--gold);">Unsubscribe</a> • <a href="#" style="color:var(--gold);">Privacy Policy</a><br/>
+                  © 2026 One Million Sentences. All rights reserved.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ EMAIL 2: PAYMENT CONFIRMED ══ -->
+      <div class="email-row" id="e2">
+        <div class="email-header" onclick="toggleEmail('e2')">
+          <div class="email-icon ei-payment">💳</div>
+          <div class="email-meta">
+            <div class="email-trigger">Trigger: after successful $5 payment</div>
+            <div class="email-name">Payment Confirmation Receipt</div>
+            <div class="email-desc">Sent immediately after the $5 payment is processed successfully by Stripe</div>
+          </div>
+          <span class="email-badge eb-auto">⚡ Automatic</span>
+          <div class="email-toggle">+</div>
+        </div>
+        <div class="email-body">
+          <div class="preview-wrap">
+            <div class="preview-topbar">
+              <div class="dot" style="background:#ff5f57;"></div>
+              <div class="dot" style="background:#febc2e;"></div>
+              <div class="dot" style="background:#28c840;"></div>
+              <span style="margin-left:8px;"><strong>Subject:</strong> Payment confirmed — $5.00 receipt ✅</span>
+            </div>
+            <div class="preview-content">
+              <div class="email-tpl">
+                <div class="tpl-header">
+                  <div class="tpl-logo">One Million<span>.</span></div>
+                  <span class="tpl-hero-icon">✅</span>
+                  <div class="tpl-title">Payment confirmed.</div>
+                  <div class="tpl-sub">Your $5 contribution has been received.</div>
+                </div>
+                <div class="tpl-body">
+                  <p>Hi <strong>[First Name]</strong>,</p>
+                  <p>This is your official payment receipt. Your $5 contribution to the One Million Sentences project has been successfully processed.</p>
+                  <div class="tpl-box">
+                    <div class="tb-label">Payment receipt</div>
+                    <div class="tb-plain">
+                      Amount paid: <strong>$5.00</strong><br/>
+                      Date: <strong>[Date]</strong><br/>
+                      Transaction ID: <strong>[Stripe ID]</strong><br/>
+                      Payment method: <strong>Card ending in [XXXX]</strong>
+                    </div>
+                  </div>
+                  <p>Your sentence is now in the review queue. If for any reason your sentence is rejected, your <span class="tpl-gold">full $5 will be refunded</span> automatically within 5–10 business days.</p>
+                  <p>Keep this email as your payment record.</p>
+                  <a href="#" class="tpl-btn">View My Dashboard →</a>
+                </div>
+                <div class="tpl-footer">
+                  One Million Sentences • © 2026 All rights reserved.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ EMAIL 3: PENDING REVIEW ══ -->
+      <div class="email-row" id="e3">
+        <div class="email-header" onclick="toggleEmail('e3')">
+          <div class="email-icon ei-pending">⏳</div>
+          <div class="email-meta">
+            <div class="email-trigger">Trigger: 3 days after submission (if still pending)</div>
+            <div class="email-name">Sentence Still Under Review</div>
+            <div class="email-desc">Reminder sent if the sentence hasn't been reviewed yet after 24 hours</div>
+          </div>
+          <span class="email-badge eb-auto">⚡ Automatic</span>
+          <div class="email-toggle">+</div>
+        </div>
+        <div class="email-body">
+          <div class="preview-wrap">
+            <div class="preview-topbar">
+              <div class="dot" style="background:#ff5f57;"></div>
+              <div class="dot" style="background:#febc2e;"></div>
+              <div class="dot" style="background:#28c840;"></div>
+              <span style="margin-left:8px;"><strong>Subject:</strong> Your sentence is still being reviewed ⏳</span>
+            </div>
+            <div class="preview-content">
+              <div class="email-tpl">
+                <div class="tpl-header">
+                  <div class="tpl-logo">One Million<span>.</span></div>
+                  <span class="tpl-hero-icon">⏳</span>
+                  <div class="tpl-title">Still reviewing your sentence.</div>
+                  <div class="tpl-sub">We'll have a decision for you very soon.</div>
+                </div>
+                <div class="tpl-body">
+                  <p>Hi <strong>[First Name]</strong>,</p>
+                  <p>We wanted to let you know that your sentence is still being carefully reviewed by our editorial team. We take each submission seriously and want to make sure every decision is fair.</p>
+                  <div class="tpl-box">
+                    <div class="tb-label">Your sentence</div>
+                    <div class="tb-val">"[Sentence Text]"</div>
+                  </div>
+                  <p>You will receive a final decision email within the next few days. Thank you for your patience.</p>
+                  <a href="#" class="tpl-btn">Check My Status →</a>
+                </div>
+                <div class="tpl-footer">One Million Sentences • © 2026 All rights reserved.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ EMAIL 4: APPROVED ══ -->
+      <div class="email-row" id="e4">
+        <div class="email-header" onclick="toggleEmail('e4')">
+          <div class="email-icon ei-approved">🎉</div>
+          <div class="email-meta">
+            <div class="email-trigger">Trigger: when you click "Approve" in admin panel</div>
+            <div class="email-name">Sentence Approved — You're in the Book!</div>
+            <div class="email-desc">The best email — sent when you personally approve the sentence</div>
+          </div>
+          <span class="email-badge eb-manual">👆 Triggered by you</span>
+          <div class="email-toggle">+</div>
+        </div>
+        <div class="email-body">
+          <div class="preview-wrap">
+            <div class="preview-topbar">
+              <div class="dot" style="background:#ff5f57;"></div>
+              <div class="dot" style="background:#febc2e;"></div>
+              <div class="dot" style="background:#28c840;"></div>
+              <span style="margin-left:8px;"><strong>Subject:</strong> 🎉 Your sentence is approved — you're in the book!</span>
+            </div>
+            <div class="preview-content">
+              <div class="email-tpl">
+                <div class="tpl-header" style="background:linear-gradient(135deg,#0f0e0c,#1a2a3a);">
+                  <div class="tpl-logo">One Million<span>.</span></div>
+                  <span class="tpl-hero-icon">🎉</span>
+                  <div class="tpl-title">Your sentence is approved!</div>
+                  <div class="tpl-sub">You are now permanently part of the book.</div>
+                </div>
+                <div class="tpl-body">
+                  <p>Hi <strong>[First Name]</strong>,</p>
+                  <p>Congratulations! Your sentence has been reviewed and <span class="tpl-success">officially approved</span> by our editorial team. You are now a permanent contributor to the One Million Sentences book.</p>
+                  <div class="tpl-box">
+                    <div class="tb-label">Your approved sentence</div>
+                    <div class="tb-val">"[Sentence Text]"</div>
+                  </div>
+                  <div class="tpl-box">
+                    <div class="tb-label">Your permanent details</div>
+                    <div class="tb-plain">
+                      Name in book: <strong>[Display Name]</strong><br/>
+                      Sentence number: <strong>[#000000]</strong><br/>
+                      Status: <span style="color:var(--success);font-weight:600;">✅ Permanently approved</span>
+                    </div>
+                  </div>
+                  <p>Your name and sentence number will appear in the published book. When the book is complete, it will be delivered to this email address — <strong>completely free</strong>.</p>
+                  <a href="#" class="tpl-btn">View My Certificate →</a>
+                  <div class="tpl-divider"></div>
+                  <p style="font-size:13px;color:var(--muted);">🔗 <strong>Share the news & earn more sentences:</strong> Every 5 paying members who join through your link earns you a free extra sentence.</p>
+                  <div class="tpl-ref-box">
+                    <div class="rb-label">Your referral link</div>
+                    <div class="rb-link">https://onemillionsentences.com/join?ref=[REF_CODE]</div>
+                  </div>
+                </div>
+                <div class="tpl-footer">One Million Sentences • © 2026 All rights reserved.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ EMAIL 5: REJECTED ══ -->
+      <div class="email-row" id="e5">
+        <div class="email-header" onclick="toggleEmail('e5')">
+          <div class="email-icon ei-rejected">❌</div>
+          <div class="email-meta">
+            <div class="email-trigger">Trigger: when you click "Reject" in admin panel</div>
+            <div class="email-name">Sentence Rejected — Full Refund Issued</div>
+            <div class="email-desc">Sent when you reject a sentence — includes the reason and refund confirmation</div>
+          </div>
+          <span class="email-badge eb-manual">👆 Triggered by you</span>
+          <div class="email-toggle">+</div>
+        </div>
+        <div class="email-body">
+          <div class="preview-wrap">
+            <div class="preview-topbar">
+              <div class="dot" style="background:#ff5f57;"></div>
+              <div class="dot" style="background:#febc2e;"></div>
+              <div class="dot" style="background:#28c840;"></div>
+              <span style="margin-left:8px;"><strong>Subject:</strong> Update on your sentence submission</span>
+            </div>
+            <div class="preview-content">
+              <div class="email-tpl">
+                <div class="tpl-header" style="background:linear-gradient(135deg,#2a1010,#3a1a1a);">
+                  <div class="tpl-logo">One Million<span>.</span></div>
+                  <span class="tpl-hero-icon">📋</span>
+                  <div class="tpl-title">An update on your submission.</div>
+                  <div class="tpl-sub">Your sentence was not approved this time.</div>
+                </div>
+                <div class="tpl-body">
+                  <p>Hi <strong>[First Name]</strong>,</p>
+                  <p>Thank you for submitting to the One Million Sentences project. After careful review, we were unfortunately unable to approve your sentence at this time.</p>
+                  <div class="tpl-box">
+                    <div class="tb-label">Your submitted sentence</div>
+                    <div class="tb-val">"[Sentence Text]"</div>
+                  </div>
+                  <div class="tpl-box" style="border-left:3px solid var(--danger);">
+                    <div class="tb-label">Reason for rejection</div>
+                    <div class="tb-plain" style="color:var(--danger);">[Rejection Reason Selected by Admin]</div>
+                  </div>
+                  <p><strong>Your refund:</strong> Your full <span class="tpl-gold">$5.00 has been refunded</span> to your original payment method. Please allow 5–10 business days for it to appear in your account.</p>
+                  <p>You are welcome to try again with a new sentence that follows our guidelines. We would love to have you in the book!</p>
+                  <a href="#" class="tpl-btn" style="background:var(--danger);">Submit a New Sentence →</a>
+                  <div class="tpl-divider"></div>
+                  <p style="font-size:12px;color:var(--muted);line-height:1.7;">
+                    <strong>Submission guidelines reminder:</strong> Sentences must be original, written entirely in English, and must not contain religious, political, adult, offensive, or hateful content. Minimum 10 characters, maximum 300 characters.
+                  </p>
+                </div>
+                <div class="tpl-footer">One Million Sentences • © 2026 All rights reserved.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ EMAIL 6: REFERRAL REWARD ══ -->
+      <div class="email-row" id="e6">
+        <div class="email-header" onclick="toggleEmail('e6')">
+          <div class="email-icon ei-referral">🎁</div>
+          <div class="email-meta">
+            <div class="email-trigger">Trigger: when referral count reaches 5, 10, 15… (every 5)</div>
+            <div class="email-name">Referral Reward — Free Sentence Unlocked!</div>
+            <div class="email-desc">Sent automatically each time someone earns a free sentence through referrals</div>
+          </div>
+          <span class="email-badge eb-auto">⚡ Automatic</span>
+          <div class="email-toggle">+</div>
+        </div>
+        <div class="email-body">
+          <div class="preview-wrap">
+            <div class="preview-topbar">
+              <div class="dot" style="background:#ff5f57;"></div>
+              <div class="dot" style="background:#febc2e;"></div>
+              <div class="dot" style="background:#28c840;"></div>
+              <span style="margin-left:8px;"><strong>Subject:</strong> 🎁 You've earned a free sentence — congratulations!</span>
+            </div>
+            <div class="preview-content">
+              <div class="email-tpl">
+                <div class="tpl-header" style="background:linear-gradient(135deg,#0f0e0c,#2a1f0a);">
+                  <div class="tpl-logo">One Million<span>.</span></div>
+                  <span class="tpl-hero-icon">🎁</span>
+                  <div class="tpl-title">You've earned a free sentence!</div>
+                  <div class="tpl-sub">Your referrals have unlocked a reward.</div>
+                </div>
+                <div class="tpl-body">
+                  <p>Hi <strong>[First Name]</strong>,</p>
+                  <p>Amazing work! You have successfully referred <strong>[5 / 10 / 15…] paying members</strong> to the project. As promised, you have earned a <span class="tpl-gold">free sentence slot</span> in the book.</p>
+                  <div class="tpl-box">
+                    <div class="tb-label">Your referral reward</div>
+                    <div class="tb-plain">
+                      Total referrals: <strong>[N] confirmed members</strong><br/>
+                      Free sentences earned: <strong>[N] total</strong><br/>
+                      New free slot: <span style="color:var(--success);font-weight:600;">✅ Ready to use</span>
+                    </div>
+                  </div>
+                  <p>Log in to your dashboard and click <strong>"Write Free Sentence"</strong> to use your reward. Your free sentence goes through the same review process as all sentences, and follows all the same guidelines.</p>
+                  <a href="#" class="tpl-btn" style="background:var(--gold);color:var(--ink);">Write My Free Sentence →</a>
+                  <div class="tpl-divider"></div>
+                  <p style="font-size:13px;color:var(--muted);">Keep sharing! Every additional 5 referrals earns you another free sentence — with no limit.</p>
+                </div>
+                <div class="tpl-footer">One Million Sentences • © 2026 All rights reserved.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ EMAIL 7: BOOK COMPLETE ══ -->
+      <div class="email-row" id="e7">
+        <div class="email-header" onclick="toggleEmail('e7')">
+          <div class="email-icon ei-book">📚</div>
+          <div class="email-meta">
+            <div class="email-trigger">Trigger: when project reaches goal — sent manually to all approved contributors</div>
+            <div class="email-name">The Book is Complete — Here is Your Free Copy!</div>
+            <div class="email-desc">The final and most important email — delivers the complete book to every contributor</div>
+          </div>
+          <span class="email-badge eb-manual">👆 Sent by you at completion</span>
+          <div class="email-toggle">+</div>
+        </div>
+        <div class="email-body">
+          <div class="preview-wrap">
+            <div class="preview-topbar">
+              <div class="dot" style="background:#ff5f57;"></div>
+              <div class="dot" style="background:#febc2e;"></div>
+              <div class="dot" style="background:#28c840;"></div>
+              <span style="margin-left:8px;"><strong>Subject:</strong> 📚 The book is complete — your free copy is here!</span>
+            </div>
+            <div class="preview-content">
+              <div class="email-tpl">
+                <div class="tpl-header" style="background:linear-gradient(135deg,#0f0e0c,#1a3a2a);">
+                  <div class="tpl-logo">One Million<span>.</span></div>
+                  <span class="tpl-hero-icon">📚</span>
+                  <div class="tpl-title">One Million Sentences is complete.</div>
+                  <div class="tpl-sub">And your free copy is attached.</div>
+                </div>
+                <div class="tpl-body">
+                  <p>Hi <strong>[First Name]</strong>,</p>
+                  <p>This is the moment we have all been waiting for. The One Million Sentences project is now <span class="tpl-success">officially complete</span>. One million sentences. One million writers. One incredible book.</p>
+                  <p>As a contributor, you are receiving your <strong>free digital copy</strong> of the complete book — as promised.</p>
+                  <div class="tpl-box" style="border-left:3px solid var(--success);text-align:center;">
+                    <div class="tb-label" style="text-align:center;margin-bottom:12px;">Your contribution</div>
+                    <div class="tb-val" style="font-size:20px;">"[Your Sentence]"</div>
+                    <div style="margin-top:10px;font-size:13px;color:var(--muted);">— <strong>[Display Name]</strong>, Sentence <strong>[#000000]</strong></div>
+                  </div>
+                  <p>The complete book is attached to this email as a PDF. It contains all [N] approved sentences, organized by number, with every contributor's name.</p>
+                  <p>📎 <strong>Attachment:</strong> One_Million_Sentences_Complete_Edition.pdf</p>
+                  <a href="#" class="tpl-btn" style="background:linear-gradient(90deg,var(--gold),var(--gold-light));color:var(--ink);">Download the Book →</a>
+                  <div class="tpl-divider"></div>
+                  <p style="font-size:13px;color:var(--muted);line-height:1.7;">
+                    The book is also available for purchase at <strong>$19</strong> for non-contributors. If you enjoyed this project, please share it — your sentence is already famous.
+                  </p>
+                </div>
+                <div class="tpl-footer">
+                  Thank you for being part of something historic.<br/>
+                  One Million Sentences • © 2026 All rights reserved.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /emails-grid -->
+
+    <!-- SETUP GUIDE -->
+    <div class="setup-section">
+      <h3>How to connect these emails</h3>
+      <p>These templates are fully designed and written. To send them automatically, connect them to one of these email services. All are easy to use and do not require coding experience.</p>
+
+      <div style="margin-bottom:20px;">
+        <p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;">Recommended email sending services</p>
+        <div class="service-chips">
+          <div class="chip recommended">⭐ SendGrid — Best choice (free up to 100/day)</div>
+          <div class="chip">Mailgun — Developer friendly</div>
+          <div class="chip">Postmark — Fastest delivery</div>
+          <div class="chip">Mailchimp — Easy for beginners</div>
+          <div class="chip">Resend — Modern & simple</div>
+        </div>
+      </div>
+
+      <div class="setup-steps">
+        <div class="setup-step">
+          <div class="ss-num">1</div>
+          <div class="ss-content">
+            <h4>Open a free SendGrid account</h4>
+            <p>Go to sendgrid.com and create a free account. No credit card needed. You get 100 free emails per day which is more than enough to start.</p>
+            <code>sendgrid.com → Sign Up Free</code>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="ss-num">2</div>
+          <div class="ss-content">
+            <h4>Get your API key</h4>
+            <p>In SendGrid, go to Settings → API Keys → Create API Key. Copy the key and give it to your developer, or paste it into your backend configuration.</p>
+            <code>Settings → API Keys → Create API Key</code>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="ss-num">3</div>
+          <div class="ss-content">
+            <h4>Give the templates to your developer</h4>
+            <p>Share this file with your developer. Each template has a clear trigger condition. The developer will connect each trigger to the right SendGrid template ID.</p>
+            <code>7 templates → 7 trigger events in your backend</code>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="ss-num">4</div>
+          <div class="ss-content">
+            <h4>Test every email before launch</h4>
+            <p>Before going live, test each email by triggering it manually. Check that all the placeholder values ([First Name], [Sentence Text], etc.) are replaced correctly with real data.</p>
+            <code>Test with your own email address first</code>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;background:var(--warning-bg);border:1px solid #e8d090;border-radius:10px;padding:14px 18px;font-size:13px;color:var(--warning);line-height:1.7;">
+        ⚠️ <strong>Important:</strong> Replace all placeholder values in brackets — [First Name], [Sentence Text], [Display Name], [#000000], [REF_CODE], [Date], [Stripe ID] — with real data from your database before sending. These are variables that your backend will fill in automatically for each member.
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main-area -->
+
+<script>
+  function toggleEmail(id) {
+    const row = document.getElementById(id);
+    const wasOpen = row.classList.contains('open');
+    document.querySelectorAll('.email-row').forEach(r => r.classList.remove('open'));
+    if (!wasOpen) row.classList.add('open');
+  }
+</script>
+</body>
+</html>
